@@ -1,248 +1,348 @@
 {
   "ok": true,
-  "errors": [],
-  "warnings": [],
-  "unconfirmed": [],
-  "reviewRequired": false,
-  "pairs": [
-    {
-      "pair": "horizontal-1",
-      "axis": "horizontal",
-      "gate": "review",
-      "A": {
-        "observed": "screen-right",
-        "expected": "screen-right",
-        "source_direction": "022.5",
-        "pass": true
-      },
-      "B": {
-        "observed": "screen-left",
-        "expected": "screen-left",
-        "source_direction": "337.5",
-        "pass": true
+  "look_rgba_sha256": "49c78b6abacf678ba02de6d74465bbe1822e83beb4439eca95caeb80b27d8b5b",
+  "method": "Three independent readers classified a randomized unlabeled 72-pixel-wide gallery. A simple majority was calculated independently for each axis.",
+  "warnings": [
+    "112.5-degree downward read was subtle; majority vertical vote was centered.",
+    "157.5-degree rightward read was subtle; majority horizontal vote was centered.",
+    "292.5-degree upward read was subtle; majority vertical vote was ambiguous."
+  ],
+  "tiles": {
+    "A": {
+      "direction": "180",
+      "ballots": [
+        {
+          "horizontal": "center",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "center",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "center",
+          "vertical": "down"
+        }
+      ],
+      "majority": {
+        "horizontal": "center",
+        "vertical": "down"
       }
     },
-    {
-      "pair": "horizontal-2",
-      "axis": "horizontal",
-      "gate": "review",
-      "A": {
-        "observed": "screen-right",
-        "expected": "screen-right",
-        "source_direction": "045",
-        "pass": true
-      },
-      "B": {
-        "observed": "screen-left",
-        "expected": "screen-left",
-        "source_direction": "315",
-        "pass": true
+    "B": {
+      "direction": "022.5",
+      "ballots": [
+        {
+          "horizontal": "screen-right",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "ambiguous",
+          "vertical": "up"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-right",
+        "vertical": "up"
       }
     },
-    {
-      "pair": "horizontal-3",
-      "axis": "horizontal",
-      "gate": "review",
-      "A": {
-        "observed": "screen-left",
-        "expected": "screen-left",
-        "source_direction": "292.5",
-        "pass": true
-      },
-      "B": {
-        "observed": "screen-right",
-        "expected": "screen-right",
-        "source_direction": "067.5",
-        "pass": true
+    "C": {
+      "direction": "112.5",
+      "ballots": [
+        {
+          "horizontal": "screen-right",
+          "vertical": "center"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "center"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "ambiguous"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-right",
+        "vertical": "center"
       }
     },
-    {
-      "pair": "horizontal-4",
-      "axis": "horizontal",
-      "gate": "hard",
-      "A": {
-        "observed": "screen-left",
-        "expected": "screen-left",
-        "source_direction": "270",
-        "pass": true
-      },
-      "B": {
-        "observed": "screen-right",
-        "expected": "screen-right",
-        "source_direction": "090",
-        "pass": true
+    "D": {
+      "direction": "315",
+      "ballots": [
+        {
+          "horizontal": "screen-left",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "up"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-left",
+        "vertical": "up"
       }
     },
-    {
-      "pair": "horizontal-5",
-      "axis": "horizontal",
-      "gate": "review",
-      "A": {
-        "observed": "screen-left",
-        "expected": "screen-left",
-        "source_direction": "247.5",
-        "pass": true
-      },
-      "B": {
-        "observed": "screen-right",
-        "expected": "screen-right",
-        "source_direction": "112.5",
-        "pass": true
+    "E": {
+      "direction": "247.5",
+      "ballots": [
+        {
+          "horizontal": "screen-left",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "down"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-left",
+        "vertical": "down"
       }
     },
-    {
-      "pair": "horizontal-6",
-      "axis": "horizontal",
-      "gate": "review",
-      "A": {
-        "observed": "screen-left",
-        "expected": "screen-left",
-        "source_direction": "225",
-        "pass": true
-      },
-      "B": {
-        "observed": "screen-right",
-        "expected": "screen-right",
-        "source_direction": "135",
-        "pass": true
+    "F": {
+      "direction": "135",
+      "ballots": [
+        {
+          "horizontal": "screen-right",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "down"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-right",
+        "vertical": "down"
       }
     },
-    {
-      "pair": "horizontal-7",
-      "axis": "horizontal",
-      "gate": "review",
-      "A": {
-        "observed": "screen-right",
-        "expected": "screen-right",
-        "source_direction": "157.5",
-        "pass": true
-      },
-      "B": {
-        "observed": "screen-left",
-        "expected": "screen-left",
-        "source_direction": "202.5",
-        "pass": true
+    "G": {
+      "direction": "045",
+      "ballots": [
+        {
+          "horizontal": "screen-right",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "up"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-right",
+        "vertical": "up"
       }
     },
-    {
-      "pair": "vertical-1",
-      "axis": "vertical",
-      "gate": "hard",
-      "A": {
-        "observed": "down",
-        "expected": "down",
-        "source_direction": "180",
-        "pass": true
-      },
-      "B": {
-        "observed": "up",
-        "expected": "up",
-        "source_direction": "000",
-        "pass": true
+    "H": {
+      "direction": "292.5",
+      "ballots": [
+        {
+          "horizontal": "screen-left",
+          "vertical": "ambiguous"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "ambiguous"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "ambiguous"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-left",
+        "vertical": "ambiguous"
       }
     },
-    {
-      "pair": "vertical-2",
-      "axis": "vertical",
-      "gate": "review",
-      "A": {
-        "observed": "up",
-        "expected": "up",
-        "source_direction": "022.5",
-        "pass": true
-      },
-      "B": {
-        "observed": "down",
-        "expected": "down",
-        "source_direction": "157.5",
-        "pass": true
+    "I": {
+      "direction": "090",
+      "ballots": [
+        {
+          "horizontal": "screen-right",
+          "vertical": "center"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "center"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "center"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-right",
+        "vertical": "center"
       }
     },
-    {
-      "pair": "vertical-3",
-      "axis": "vertical",
-      "gate": "review",
-      "A": {
-        "observed": "down",
-        "expected": "down",
-        "source_direction": "135",
-        "pass": true
-      },
-      "B": {
-        "observed": "up",
-        "expected": "up",
-        "source_direction": "045",
-        "pass": true
+    "J": {
+      "direction": "270",
+      "ballots": [
+        {
+          "horizontal": "screen-left",
+          "vertical": "center"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "center"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "center"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-left",
+        "vertical": "center"
       }
     },
-    {
-      "pair": "vertical-4",
-      "axis": "vertical",
-      "gate": "review",
-      "A": {
-        "observed": "down",
-        "expected": "down",
-        "source_direction": "112.5",
-        "pass": true
-      },
-      "B": {
-        "observed": "up",
-        "expected": "up",
-        "source_direction": "067.5",
-        "pass": true
+    "K": {
+      "direction": "157.5",
+      "ballots": [
+        {
+          "horizontal": "center",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "center",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "center",
+          "vertical": "down"
+        }
+      ],
+      "majority": {
+        "horizontal": "center",
+        "vertical": "down"
       }
     },
-    {
-      "pair": "vertical-5",
-      "axis": "vertical",
-      "gate": "review",
-      "A": {
-        "observed": "up",
-        "expected": "up",
-        "source_direction": "337.5",
-        "pass": true
-      },
-      "B": {
-        "observed": "down",
-        "expected": "down",
-        "source_direction": "202.5",
-        "pass": true
+    "L": {
+      "direction": "337.5",
+      "ballots": [
+        {
+          "horizontal": "screen-left",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "up"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-left",
+        "vertical": "up"
       }
     },
-    {
-      "pair": "vertical-6",
-      "axis": "vertical",
-      "gate": "review",
-      "A": {
-        "observed": "up",
-        "expected": "up",
-        "source_direction": "315",
-        "pass": true
-      },
-      "B": {
-        "observed": "down",
-        "expected": "down",
-        "source_direction": "225",
-        "pass": true
+    "M": {
+      "direction": "225",
+      "ballots": [
+        {
+          "horizontal": "screen-left",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "down"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-left",
+        "vertical": "down"
       }
     },
-    {
-      "pair": "vertical-7",
-      "axis": "vertical",
-      "gate": "review",
-      "A": {
-        "observed": "down",
-        "expected": "down",
-        "source_direction": "247.5",
-        "pass": true
-      },
-      "B": {
-        "observed": "up",
-        "expected": "up",
-        "source_direction": "292.5",
-        "pass": true
+    "N": {
+      "direction": "000",
+      "ballots": [
+        {
+          "horizontal": "center",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "center",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "center",
+          "vertical": "up"
+        }
+      ],
+      "majority": {
+        "horizontal": "center",
+        "vertical": "up"
+      }
+    },
+    "O": {
+      "direction": "067.5",
+      "ballots": [
+        {
+          "horizontal": "screen-right",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "up"
+        },
+        {
+          "horizontal": "screen-right",
+          "vertical": "up"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-right",
+        "vertical": "up"
+      }
+    },
+    "P": {
+      "direction": "202.5",
+      "ballots": [
+        {
+          "horizontal": "screen-left",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "down"
+        },
+        {
+          "horizontal": "screen-left",
+          "vertical": "down"
+        }
+      ],
+      "majority": {
+        "horizontal": "screen-left",
+        "vertical": "down"
       }
     }
-  ],
-  "look_rgba_sha256": "1df313e81319c525474cf0eb32bd0a0953e7dd19e805db1484d1c3c3e0aee5d4"
+  }
 }
