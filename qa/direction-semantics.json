@@ -1,5 +1,5 @@
 {
-  "look_rgba_sha256": "efa160bd5cbf3c20f28d987adff5bb0faff7ba1b92e610905bd99c3e9a050be6",
+  "look_rgba_sha256": "1df313e81319c525474cf0eb32bd0a0953e7dd19e805db1484d1c3c3e0aee5d4",
   "directions": [
     {
       "label": "000",
@@ -62,60 +62,60 @@
       "expected": "down",
       "observed": "down",
       "verdict": "pass",
-      "evidence": "Pupil lies over the gap between the feet and close to the bottom boundary of the blue opening."
+      "evidence": "Pupil and pale iris sit close to the lower socket rim and directly above the gap between the soles."
     },
     {
       "label": "202.5",
       "expected": "down-left",
       "observed": "down-left",
       "verdict": "pass",
-      "evidence": "Pupil left of the midpoint between the feet and low in the opening."
+      "evidence": "Pupil sits just left of the body centerline and remains low against the bottom rim."
     },
     {
       "label": "225",
       "expected": "down-left",
       "observed": "down-left",
       "verdict": "pass",
-      "evidence": "Pupil far left of socket center and still notably below the horizontal midline."
+      "evidence": "Pupil moves farther left of the sole gap and lifts slightly, remaining well below the socket midpoint."
     },
     {
       "label": "247.5",
       "expected": "down-left",
       "observed": "down-left",
-      "verdict": "warning",
-      "evidence": "Pupil close to the left wall and slightly below the following left cardinal; pale ring follows the shallow descent."
+      "verdict": "pass",
+      "evidence": "Pupil is close to the left socket wall and visibly below the adjacent 270-degree left pose. It sits higher than 225 degrees in the clockwise progression."
     },
     {
       "label": "270",
       "expected": "left",
       "observed": "left",
       "verdict": "pass",
-      "evidence": "Pupil near the left socket wall at the mid-height of the opening."
+      "evidence": "Pupil is close to the left rim and near the horizontal midpoint of the socket."
     },
     {
       "label": "292.5",
       "expected": "up-left",
       "observed": "up-left",
       "verdict": "pass",
-      "evidence": "Pupil near the left wall and visibly above the opening midpoint and previous left cardinal."
+      "evidence": "Pupil stays left of the body centerline and lifts above the 270-degree pupil."
     },
     {
       "label": "315",
       "expected": "up-left",
       "observed": "up-left",
       "verdict": "pass",
-      "evidence": "Pupil upper-left of the fixed blue opening, close to the lid, with an offset cyan ring."
+      "evidence": "Pupil is high in the left quadrant of the blue opening, nearer the upper lid."
     },
     {
       "label": "337.5",
       "expected": "up-left",
       "observed": "up-left",
       "verdict": "pass",
-      "evidence": "Pupil almost at the top of the socket, still left of the gap between the feet before closing the loop."
+      "evidence": "Pupil remains left of the sole gap at the top of the socket and progresses smoothly to the centered up pose."
     }
   ],
   "continuity_review": [
-    "Examined all sixteen rendered gaze poses at native size. The pupil rolls through the same socket as the body stays planted.",
-    "At both row seams the pupil moves into the vertical cardinal without a visible silhouette jump. The 247.5-degree down-left pose retains a shallow but readable downward component."
+    "Reviewed all sixteen registered gaze poses and the two row seams. The pupil continues the clockwise arc through 157.5 to 180 and 337.5 to 000.",
+    "The continuity report flags alpha-outline differences at the two row boundaries. Bounding-box center shifts are 0.71 px and 0.00 px respectively, with under 1% visible area change. The shell edge and feet stay visually registered at pet size."
   ]
 }

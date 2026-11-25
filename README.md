@@ -43,11 +43,11 @@ The shipping sheet is a transparent 1536 × 2288 PNG with 192 × 208 cells. It h
 
 The Pets plugin validates the exact encoded PNG before its upload-session tool transfers it. Pass that session to update_pet using the existing Nazar pet ID, then verify it and the active selection. See pipeline/skills/update-pet/SKILL.md and pipeline/references/upload-session.md for the full sequence.
 
-The default rebuilt sprite SHA-256 is `6ab2d2a809d68d8de8da344393846ccff01aa6c872a95e1d8084b8b58e6239dc`. The optional PNG optimizer can change the encoded hash while preserving every RGBA pixel.
+The default rebuilt sprite SHA-256 is `3cd3669265bfce1fa6625e38d750f06d6cff9ec3bf0eafd144d497fa5ffeff4b`. The optional PNG optimizer can change the encoded hash while preserving every RGBA pixel.
 
 ## Rendering update
 
 - Uses exterior-connected soft chroma recovery and single-pass body registration. The new jump keeps Nazar's body size, lifts 30 px, and lands on the idle baseline.
-- Registers both gaze rows at subpixel precision. The continuity check reports zero warnings. The 247.5-degree down-left gaze remains subtle in blind review.
+- Registers both gaze rows at subpixel precision. The 247.5-degree pose reads down-left on both axes in blind review. Two small silhouette differences at the gaze row boundaries are documented in the continuity report.
 - Generates dark and light GIFs, transparent animated WebP, per-state loops, and a 2× inspection sheet. The MP4 uses RGB frames directly.
 - Keeps visual review tied to the reviewed gaze pixels. Pets preflight reports come from the Pets validator for the exact encoded file.

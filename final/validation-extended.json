@@ -1,8 +1,8 @@
 {
   "ok": true,
   "file": "final/spritesheet-extended.png",
-  "encoded_bytes": 2995821,
-  "sha256": "6ab2d2a809d68d8de8da344393846ccff01aa6c872a95e1d8084b8b58e6239dc",
+  "encoded_bytes": 2996298,
+  "sha256": "3cd3669265bfce1fa6625e38d750f06d6cff9ec3bf0eafd144d497fa5ffeff4b",
   "format": "PNG",
   "mode": "RGBA",
   "columns": 8,
@@ -739,7 +739,7 @@
       "row": 10,
       "column": 0,
       "used": true,
-      "nontransparent_pixels": 20289,
+      "nontransparent_pixels": 20333,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
@@ -748,7 +748,7 @@
       "row": 10,
       "column": 1,
       "used": true,
-      "nontransparent_pixels": 20204,
+      "nontransparent_pixels": 20248,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
@@ -757,7 +757,7 @@
       "row": 10,
       "column": 2,
       "used": true,
-      "nontransparent_pixels": 20203,
+      "nontransparent_pixels": 20231,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
@@ -766,7 +766,7 @@
       "row": 10,
       "column": 3,
       "used": true,
-      "nontransparent_pixels": 20197,
+      "nontransparent_pixels": 20250,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
@@ -775,7 +775,7 @@
       "row": 10,
       "column": 4,
       "used": true,
-      "nontransparent_pixels": 20269,
+      "nontransparent_pixels": 20256,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
@@ -784,7 +784,7 @@
       "row": 10,
       "column": 5,
       "used": true,
-      "nontransparent_pixels": 20183,
+      "nontransparent_pixels": 20265,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
@@ -793,7 +793,7 @@
       "row": 10,
       "column": 6,
       "used": true,
-      "nontransparent_pixels": 20232,
+      "nontransparent_pixels": 20258,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
@@ -802,7 +802,7 @@
       "row": 10,
       "column": 7,
       "used": true,
-      "nontransparent_pixels": 20197,
+      "nontransparent_pixels": 20171,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     }
