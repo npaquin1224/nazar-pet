@@ -271,6 +271,7 @@ def main() -> None:
     parser.add_argument("--chroma-report", required=True)
     parser.add_argument("--frame-review", required=True)
     parser.add_argument("--direction-semantics", required=True)
+    parser.add_argument("--require-reviewed-look", action="store_true")
     parser.add_argument("--continuity", required=True)
     parser.add_argument("--json-out", required=True)
     parser.add_argument("--minimum-jump-lift", type=int, default=8)
@@ -316,6 +317,14 @@ def main() -> None:
     if atlas.size != (CELL_WIDTH * 8, CELL_HEIGHT * 11):
         errors.append(f"final atlas must be 1536x2288, got {atlas.width}x{atlas.height}")
 
+    look_digest = hashlib.sha256()
+    look_digest.update(atlas.crop((0, 0, CELL_WIDTH, CELL_HEIGHT)).tobytes())
+    look_digest.update(atlas.crop((0, CELL_HEIGHT * 9, atlas.width, atlas.height)).tobytes())
+    look_rgba_sha256 = look_digest.hexdigest()
+    reviewed_look = semantics.get("look_rgba_sha256")
+    if (args.require_reviewed_look or reviewed_look is not None) and reviewed_look != look_rgba_sha256:
+        errors.append("direction semantics must refer to the current neutral and gaze pixels via look_rgba_sha256")
+
     inspect_semantics(semantics, errors, warnings)
     jump = inspect_jump(atlas, args.minimum_jump_lift, args.maximum_landing_delta, errors)
     look_registration = inspect_look_registration(
@@ -332,6 +341,7 @@ def main() -> None:
         "atlas": str(atlas_path),
         "encoded_bytes": len(image_bytes),
         "sha256": digest,
+        "look_rgba_sha256": look_rgba_sha256,
         "jump": jump,
         "look_registration": look_registration,
         "errors": errors,

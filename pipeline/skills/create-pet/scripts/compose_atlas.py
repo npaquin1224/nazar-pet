@@ -121,7 +121,7 @@ def clear_transparent_rgb(image: Image.Image) -> Image.Image:
 def save_outputs(atlas: Image.Image, output: Path, webp_output: Path | None) -> None:
     atlas = clear_transparent_rgb(atlas)
     output.parent.mkdir(parents=True, exist_ok=True)
-    atlas.save(output)
+    atlas.save(output, optimize=True, compress_level=9)
     if webp_output is not None:
         webp_output.parent.mkdir(parents=True, exist_ok=True)
         atlas.save(

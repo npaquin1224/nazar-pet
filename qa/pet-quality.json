@@ -1,16 +1,17 @@
 {
   "ok": true,
   "atlas": "final/spritesheet-extended.png",
-  "encoded_bytes": 3361684,
-  "sha256": "186a80f11602a007ab8fd4801dcbca8f899ee84b59bafd580a2563fa59dd85ea",
+  "encoded_bytes": 3187956,
+  "sha256": "b5e8ea5831b5f5bb2b4c09c5b5170bdc4a01fcbfea0d67cbbcc8f67169672baf",
+  "look_rgba_sha256": "70c466cfa0cc793dc4ab02506da11ce3b95c77785cfe23c004d2255c811a7163",
   "jump": {
-    "idle_baseline": 194,
+    "idle_baseline": 193,
     "jump_baselines": [
-      195,
-      175,
-      152,
-      175,
-      195
+      194,
+      174,
+      151,
+      174,
+      194
     ],
     "airborne_lift_pixels": 43,
     "landing_delta_pixels": 1
@@ -24,11 +25,11 @@
       96.0,
       96.0,
       96.0,
-      96.5,
+      96.0,
       96.0,
       96.5,
       95.5,
-      95.5,
+      96.0,
       95.5,
       96.0,
       95.5,
@@ -42,25 +43,22 @@
       160,
       160,
       160,
-      159,
       160,
-      163,
-      163,
-      163,
-      163,
-      164,
-      163,
-      164,
-      163
+      160,
+      161,
+      161,
+      162,
+      161,
+      162,
+      161,
+      162,
+      161
     ],
     "maximum_center_drift_pixels": 1.0,
-    "maximum_width_ratio": 1.0314465408805031
+    "maximum_width_ratio": 1.0125
   },
   "errors": [],
   "warnings": [
-    "look direction 247.5 accepted with a reviewed warning",
-    "157.5->180 diff is a local outlier (1124 pixels vs neighbor average 711)",
-    "247.5->270 diff is a local outlier (685 pixels vs neighbor average 434)",
-    "337.5->000 diff is a local outlier (1114 pixels vs neighbor average 697)"
+    "look direction 247.5 accepted with a reviewed warning"
   ]
 }
