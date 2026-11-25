@@ -564,21 +564,6 @@
           "file": "frames/failed/01.png",
           "width": 192,
           "height": 208,
-          "nontransparent_pixels": 21136,
-          "bbox": [
-            18,
-            25,
-            174,
-            194
-          ],
-          "edge_pixels": 0,
-          "chroma_adjacent_pixels": 531
-        },
-        {
-          "index": 2,
-          "file": "frames/failed/02.png",
-          "width": 192,
-          "height": 208,
           "nontransparent_pixels": 20540,
           "bbox": [
             18,
@@ -588,6 +573,21 @@
           ],
           "edge_pixels": 0,
           "chroma_adjacent_pixels": 455
+        },
+        {
+          "index": 2,
+          "file": "frames/failed/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 19159,
+          "bbox": [
+            18,
+            47,
+            174,
+            194
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 465
         },
         {
           "index": 3,
@@ -609,21 +609,6 @@
           "file": "frames/failed/04.png",
           "width": 192,
           "height": 208,
-          "nontransparent_pixels": 19159,
-          "bbox": [
-            18,
-            47,
-            174,
-            194
-          ],
-          "edge_pixels": 0,
-          "chroma_adjacent_pixels": 465
-        },
-        {
-          "index": 5,
-          "file": "frames/failed/05.png",
-          "width": 192,
-          "height": 208,
           "nontransparent_pixels": 19877,
           "bbox": [
             18,
@@ -635,8 +620,8 @@
           "chroma_adjacent_pixels": 459
         },
         {
-          "index": 6,
-          "file": "frames/failed/06.png",
+          "index": 5,
+          "file": "frames/failed/05.png",
           "width": 192,
           "height": 208,
           "nontransparent_pixels": 20988,
@@ -648,6 +633,21 @@
           ],
           "edge_pixels": 0,
           "chroma_adjacent_pixels": 508
+        },
+        {
+          "index": 6,
+          "file": "frames/failed/06.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 21136,
+          "bbox": [
+            18,
+            25,
+            174,
+            194
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 531
         },
         {
           "index": 7,
