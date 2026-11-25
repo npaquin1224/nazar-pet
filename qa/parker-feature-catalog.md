@@ -2,21 +2,20 @@
 
 This catalog collects ideas from the Parker desktop pet for consideration in Nazar. It is a focused source review and a set of proposals. The host's interaction events, state storage, and control over animation transitions have not been verified.
 
-Nazar's current artwork has nine activity states and sixteen look directions. Its failure recoil is live. PR #7 was merged, and the active pet was verified against main pixel for pixel. The waiting experiment remains optional. See [the existing motion proposal](animation-behavior-proposal.md).
+Nazar's current artwork has nine activity states and sixteen look directions. Its failure recoil shipped in PR #7, and its expectant waiting animation shipped in [PR #10](https://github.com/npaquin1224/nazar-pet/pull/10). See [the motion notes](animation-behavior-proposal.md).
 
 ## Recommended order
 
-1. Compare an expectant waiting pose with the current waiting and review loops at normal size.
-2. Explore curious and focused expressions, a personal greeting, and an idle rhythm using Nazar's eye, lid, and shell.
-3. Review transitions, gait, and celebration in motion against the current artwork.
-4. Check which interaction events and persistent state the host actually exposes.
-5. If supported, prototype one direct interaction and one remembered preference before expanding to needs or goals.
+1. Explore curious and focused expressions, a personal greeting, and an idle rhythm using Nazar's eye, lid, and shell.
+2. Review transitions, gait, and celebration in motion against the current artwork.
+3. Check which interaction events and persistent state the host actually exposes.
+4. If supported, prototype one direct interaction and one remembered preference before expanding to needs or goals.
 
 ## Animation ideas within existing states
 
 | Idea | Parker inspiration | Nazar experiment | Review |
 | --- | --- | --- | --- |
-| Expectant waiting | A small response makes reluctance visible | Look outward, lean forward slightly, hold, then settle | Distinguish waiting from idle and review |
+| Expectant waiting | A small response makes reluctance visible | Lift the eye, hold, then settle | Shipped in PR #10 |
 | Curious glance | Watching and attention | Brief eye shift with a slight tilt | Read clearly at pet size |
 | Concentration | State-driven eyes and posture | Partly lowered lid and deliberate gaze in working or review | Keep work and review distinct |
 | Surprise and recovery | Startle followed by slower recovery | Existing failed recoil is shipped | Judge in normal use |
@@ -32,7 +31,7 @@ Nazar's current artwork has nine activity states and sixteen look directions. It
 | Consistent mood palette | Mood tints preserve underlying identity | Test subtle changes to existing cyan and violet lighting | Preserve Nazar's recognizable appearance |
 | State transitions | Parker eases body changes | Review idle/wave, idle/jump, failure/idle and work/review | Determine which transitions the host controls |
 
-These are art proposals. The fixed sprite contract and host playback determine what can actually be displayed. New artwork needs motion review and validation through the existing pipeline.
+The remaining art ideas are proposals. The fixed sprite contract and host playback determine what can actually be displayed. New artwork needs motion review and validation through the existing pipeline.
 
 ## Direct interactions to investigate
 
@@ -81,4 +80,4 @@ These are art proposals. The fixed sprite contract and host playback determine w
 
 ## Sources and status
 
-The Parker review covered the interaction, expression, food, body, and brain sources and project documentation. The Nazar repository and recent Nazar thread were checked for existing artwork and recoil work. This document contains proposals, not implemented features. Host events, stored state, sound, and custom behavior selection require verification before planning implementation.
+The Parker review covered the interaction, expression, food, body, and brain sources and project documentation. The Nazar repository and recent Nazar thread were checked for existing artwork and recoil work. Host events, stored state, sound, and custom behavior selection require verification before planning implementation.
