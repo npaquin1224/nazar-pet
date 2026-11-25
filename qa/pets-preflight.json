@@ -1,6 +1,6 @@
 {
   "valid": true,
-  "file_size_bytes": 2994697,
+  "file_size_bytes": 2992826,
   "mime_type": "image/png",
   "width": 1536,
   "height": 2288,
@@ -21,5 +21,5 @@
     8
   ],
   "errors": [],
-  "sha256": "5b5b6264cf871e03596c3d79a512d3c2fa80828572d7883e80d3962c2d79bdf7"
+  "sha256": "a43274629a03c7a9d1dea7834b542e83dde2ed06629efdc6e5df0a29e7584d3b"
 }
