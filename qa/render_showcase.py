@@ -31,7 +31,7 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 from make_contact_sheet import CELL_HEIGHT, CELL_WIDTH, ROW_NAMES, USED_COUNTS  # noqa: E402
-from render_animation_previews import ROW_DURATIONS  # noqa: E402
+from render_animation_previews import LOOK_POSE_HOLD_MS, ROW_DURATIONS  # noqa: E402
 
 STATE_ROWS = {name: index for index, name in enumerate(ROW_NAMES)}
 
@@ -153,6 +153,7 @@ HARD_CUT_SIMILARITY = 0.993
 HARD_CUT_TRAVEL = 1.5
 FRINGE_KEY_LIMIT = 110.0
 FRINGE_DIP_LIMIT = 20.0
+FRINGE_EDGE_WIDTH = 3
 FRINGE_REPAIR_RADIUS = 3
 
 
@@ -181,10 +182,13 @@ def repair_chroma_fringe(cell: Image.Image) -> tuple[Image.Image, int]:
         & (rgb[:, :, 0] - medians[0] > 8)
         & (rgb[:, :, 2] - medians[2] > 8)
     )
-    candidates = (alpha > 0) & (near_key | green_dip)
+    visible = alpha > 0
+    silhouette = np.pad(ndimage.binary_fill_holes(visible), 1)
+    distance = ndimage.distance_transform_edt(silhouette)[1:-1, 1:-1]
+    candidates = visible & (distance <= FRINGE_EDGE_WIDTH) & (near_key | green_dip)
     if not candidates.any():
         return cell, 0
-    clean = (alpha > 0) & ~candidates
+    clean = visible & ~(near_key | green_dip)
     if not clean.any():
         return cell, 0
 
@@ -704,7 +708,7 @@ def write_gif_from_video(
 
 
 def write_webp(
-    renderer: SceneRenderer, plan: list[Frame], path: Path, fps: int, *, alpha: bool
+    renderer: SceneRenderer, plan: list[Frame], path: Path, duration_ms: int, *, alpha: bool
 ) -> None:
     frames = []
     for frame in plan:
@@ -715,7 +719,7 @@ def write_webp(
         path,
         save_all=True,
         append_images=frames[1:],
-        duration=round(1000 / fps),
+        duration=duration_ms,
         loop=0,
         lossless=True,
         quality=100,
@@ -929,12 +933,19 @@ def main() -> None:
             write_video(binary, renderer, plan, path, args.fps, alpha=False)
             artifacts.append(file_record(path))
 
-        # Gaze loop: the 16 look directions, held evenly, as motion + alpha video.
-        look_states = ["look 000-157.5", "look 180-337.5"]
-        look_plan: list[Frame] = []
-        for state, count in ((look_states[0], 8), (look_states[1], 8)):
-            for index in range(count):
-                look_plan.extend(Frame(state, index) for _ in range(max(1, round(0.14 * args.fps))))
+        look_poses = [
+            Frame(state, index)
+            for state, count in zip(ROW_NAMES, USED_COUNTS, strict=True)
+            if state.startswith("look")
+            for index in range(count)
+        ]
+        # Round each cumulative boundary so 60 fps quantization does not drift.
+        frames_per_pose = LOOK_POSE_HOLD_MS * args.fps / 1000
+        look_plan = [
+            pose
+            for index, pose in enumerate(look_poses)
+            for _ in range(max(1, round((index + 1) * frames_per_pose) - round(index * frames_per_pose)))
+        ]
         gaze = output / "states" / "gaze-16.mp4"
         write_video(binary, renderer, look_plan, gaze, args.fps, alpha=False)
         artifacts.append(file_record(gaze))
@@ -942,12 +953,8 @@ def main() -> None:
         if not args.no_webp:
             alpha_layout = make_layout(2)
             alpha_renderer = SceneRenderer(atlas, args.theme, alpha_layout, shadow=False)
-            alpha_plan: list[Frame] = []
-            for state, count in ((look_states[0], 8), (look_states[1], 8)):
-                for index in range(count):
-                    alpha_plan.extend(Frame(state, index) for _ in range(2))
             webp = output / "states" / "gaze-16-alpha.webp"
-            write_webp(alpha_renderer, alpha_plan, webp, 14, alpha=True)
+            write_webp(alpha_renderer, look_poses, webp, LOOK_POSE_HOLD_MS, alpha=True)
             artifacts.append(file_record(webp))
 
             # Idle → jump → idle, the transition users actually watch.

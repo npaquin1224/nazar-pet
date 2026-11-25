@@ -9,6 +9,8 @@ from pathlib import Path
 
 from PIL import Image
 
+LOOK_POSE_HOLD_MS = 110
+
 ROW_DURATIONS = {
     "idle": [280, 110, 110, 140, 140, 320],
     "running-right": [120, 120, 120, 120, 120, 120, 120, 220],

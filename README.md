@@ -80,4 +80,4 @@ The default rebuilt sprite SHA-256 is `a43274629a03c7a9d1dea7834b542e83dde2ed066
 - The failure animation reaches its deepest tuck earlier and recovers more gradually using the existing eight poses.
 - Generates dark and light GIFs, transparent animated WebP, per-state loops, and a 2× inspection sheet. The MP4 uses RGB frames directly.
 - Keeps visual review tied to the reviewed gaze pixels. Pets preflight reports come from the Pets validator for the exact encoded file.
-- Supersampled renders in `showcase/` show 2,571 fully opaque near-magenta pixels remaining at silhouette edges. They are invisible at pet size and the showcase repairs them for display only; `despill_chroma_edges.py` is still the right place to remove them from the sheet itself.
+- Showcase renders use a 110 ms gaze cadence and limit display-side fringe cleanup to the outer three native pixels of each silhouette.

@@ -22,7 +22,7 @@ from the encoded master. ffmpeg comes from `PATH` or from the optional
 | `Nazar-codex-motion-dark-authentic.mp4` | 1:1 playback with no inbetweens, as the client plays it |
 | `Nazar-codex-motion-dark.gif` | 384 px inline version for the README |
 | `states/*.mp4` | Per-state loops at 60 fps |
-| `states/gaze-16.mp4`, `states/gaze-16-alpha.webp` | The sixteen-direction gaze loop, with and without alpha |
+| `states/gaze-16.mp4`, `states/gaze-16-alpha.webp` | The sixteen-direction gaze loop at 110 ms per pose, with video timing rounded to 60 fps frame boundaries |
 | `states/idle-jump-idle.mp4` | The transition users actually watch |
 | `states/idle-timing-*.mp4` | Canonical cadence beside the calmer proposal |
 
@@ -34,10 +34,9 @@ from the encoded master. ffmpeg comes from `PATH` or from the optional
   interpolated. That is why the authentic cut and the smoothed cut look equally clean.
 - **Motion-compensated inbetweens.** When the body does travel, both poses are parked on the
   same eased centroid before the fade, so a jump translates instead of ghosting.
-- **Fringe repair.** The shipped sheet still contains 2,571 fully opaque, near-magenta pixels
-  at silhouette edges. Invisible at 192×208, they read as pink confetti at 4×. The renderer
-  replaces them with the mean of their clean neighbourhood and reports the count; alpha is
-  never touched. The atlas itself is untouched, so every existing QA hash stays valid.
+- **Fringe repair.** The renderer replaces likely magenta spill within three native pixels
+  of the outer silhouette with the mean of the surrounding clean colors. It reports the
+  count and preserves interior RGB, alpha, and the original atlas.
 - **Theme-correct contact.** A black drop shadow is invisible on a near-black background, so
   the dark theme gets a cool floor pool instead and the light theme keeps a real shadow.
 
