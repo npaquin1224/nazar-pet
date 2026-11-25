@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Extract generated horizontal row strips into 192x208 sprite frames (vectorized + anti-aliased)."""
+"""Extract generated horizontal row strips into 192x208 sprite frames."""
 
 from __future__ import annotations
 
 import argparse
+from collections import deque
 import json
+import math
 import re
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
-from scipy import ndimage
 
 CELL_WIDTH = 192
 CELL_HEIGHT = 208
@@ -55,40 +55,120 @@ def load_chroma_key(decoded_dir: Path, override: str | None) -> tuple[int, int, 
     return parse_hex_color("#00FF00")
 
 
+def color_distance(
+    red: int,
+    green: int,
+    blue: int,
+    key: tuple[int, int, int],
+) -> float:
+    return math.sqrt((red - key[0]) ** 2 + (green - key[1]) ** 2 + (blue - key[2]) ** 2)
+
+
 def remove_chroma_background(
     image: Image.Image,
     chroma_key: tuple[int, int, int],
     threshold: float,
-    feather: float = 14.0,
 ) -> Image.Image:
-    """Vectorized chroma keying with sub-pixel smooth anti-aliased alpha ramp."""
-    arr = np.asarray(image.convert("RGBA"), dtype=np.float32).copy()
-    rgb = arr[:, :, :3]
-    alpha = arr[:, :, 3]
-    key = np.array(chroma_key, dtype=np.float32)
+    """Flood-connected chroma matting with anti-aliased edge unmixing."""
+    rgba = image.convert("RGBA")
+    width, height = rgba.size
+    raw = rgba.tobytes()
+    kr, kg, kb = chroma_key
+    d_low = max(12.0, threshold * 0.42)
+    d_high = max(d_low + 16.0, threshold * 1.18)
+    d_seed = max(8.0, threshold * 0.30)
+    d_low_sq = int(d_low * d_low)
+    d_high_sq = int(math.ceil(d_high * d_high))
+    d_seed_sq = int(d_seed * d_seed)
 
-    dist = np.linalg.norm(rgb - key, axis=2)
-    low = max(0.0, threshold - feather)
-    high = threshold + feather
+    total = width * height
+    dist_sq = [0] * total
+    for idx in range(total):
+        base = idx * 4
+        if raw[base + 3] == 0:
+            continue
+        dr = raw[base] - kr
+        dg = raw[base + 1] - kg
+        db = raw[base + 2] - kb
+        dist_sq[idx] = dr * dr + dg * dg + db * db
 
-    # Smooth linear ramp across [low, high] for anti-aliased silhouette edges
-    ramp = np.clip((dist - low) / max(1e-6, high - low), 0.0, 1.0)
-    new_alpha = np.minimum(alpha, ramp * 255.0)
+    visited = bytearray(total)
+    queue: deque[int] = deque()
 
-    # Decontaminate semi-transparent edge pixels against chroma key spill
-    semi = (new_alpha > 0.0) & (new_alpha < 255.0)
-    if np.any(semi):
-        a_norm = np.clip(new_alpha[semi, None] / 255.0, 0.08, 1.0)
-        unmixed = (rgb[semi] - (1.0 - a_norm) * key) / a_norm
-        rgb[semi] = np.clip(unmixed, 0.0, 255.0)
+    def enqueue(index: int) -> None:
+        if not visited[index] and dist_sq[index] < d_high_sq:
+            visited[index] = 1
+            queue.append(index)
 
-    zero_mask = new_alpha <= 1.0
-    rgb[zero_mask] = 0.0
-    new_alpha[zero_mask] = 0.0
+    for x in range(width):
+        enqueue(x)
+        enqueue((height - 1) * width + x)
+    for y in range(height):
+        enqueue(y * width)
+        enqueue(y * width + width - 1)
+    for idx, d2_val in enumerate(dist_sq):
+        if d2_val <= d_seed_sq and not visited[idx]:
+            visited[idx] = 1
+            queue.append(idx)
 
-    arr[:, :, :3] = np.rint(rgb)
-    arr[:, :, 3] = np.rint(new_alpha)
-    return Image.fromarray(arr.astype(np.uint8), mode="RGBA")
+    while queue:
+        cur = queue.popleft()
+        cx = cur % width
+        cy = cur // width
+        if cx > 0:
+            ni = cur - 1
+            if not visited[ni] and dist_sq[ni] < d_high_sq:
+                visited[ni] = 1
+                queue.append(ni)
+        if cx + 1 < width:
+            ni = cur + 1
+            if not visited[ni] and dist_sq[ni] < d_high_sq:
+                visited[ni] = 1
+                queue.append(ni)
+        if cy > 0:
+            ni = cur - width
+            if not visited[ni] and dist_sq[ni] < d_high_sq:
+                visited[ni] = 1
+                queue.append(ni)
+        if cy + 1 < height:
+            ni = cur + width
+            if not visited[ni] and dist_sq[ni] < d_high_sq:
+                visited[ni] = 1
+                queue.append(ni)
+
+    out = bytearray(total * 4)
+    span = d_high - d_low
+    for idx in range(total):
+        base = idx * 4
+        src_a = raw[base + 3]
+        if src_a == 0:
+            continue
+        if not visited[idx]:
+            out[base : base + 4] = raw[base : base + 4]
+            continue
+
+        d2_val = dist_sq[idx]
+        if d2_val <= d_low_sq:
+            continue
+        d_val = math.sqrt(d2_val)
+        matte_a = (d_val - d_low) / span
+        eff_a = matte_a * (src_a / 255.0)
+        if eff_a < 0.06:
+            continue
+        r = raw[base]
+        g = raw[base + 1]
+        b = raw[base + 2]
+        inv_a = 1.0 - matte_a
+        rf = max(0, min(255, round((r - inv_a * kr) / matte_a)))
+        gf = max(0, min(255, round((g - inv_a * kg) / matte_a)))
+        bf = max(0, min(255, round((b - inv_a * kb) / matte_a)))
+        ab = max(1, min(255, round(eff_a * 255)))
+        out[base] = rf
+        out[base + 1] = gf
+        out[base + 2] = bf
+        out[base + 3] = ab
+
+    return Image.frombytes("RGBA", (width, height), bytes(out))
 
 
 def fit_to_cell(image: Image.Image) -> Image.Image:
@@ -133,32 +213,64 @@ def fit_viewport_to_cell(image: Image.Image) -> Image.Image:
 
 
 def connected_components(image: Image.Image) -> list[dict[str, object]]:
-    """Fast vectorized 4-connected component labeling via scipy.ndimage."""
-    alpha = np.asarray(image.getchannel("A"))
-    mask = alpha > 16
-    labeled, count = ndimage.label(mask)
-    if count == 0:
-        return []
-
-    slices = ndimage.find_objects(labeled)
-    areas = ndimage.sum(mask, labeled, index=range(1, count + 1))
+    alpha = image.getchannel("A")
+    width, height = image.size
+    data = alpha.tobytes()
+    visited = bytearray(width * height)
     components: list[dict[str, object]] = []
-    for label_idx, (slc, area_val) in enumerate(zip(slices, areas), start=1):
-        if slc is None:
+
+    for start, alpha_value in enumerate(data):
+        if alpha_value <= 16 or visited[start]:
             continue
-        y_slc, x_slc = slc
-        min_y, max_y = int(y_slc.start), int(y_slc.stop)
-        min_x, max_x = int(x_slc.start), int(x_slc.stop)
-        sub_mask = labeled[y_slc, x_slc] == label_idx
+
+        stack = [start]
+        visited[start] = 1
+        pixels: list[int] = []
+        min_x = width
+        min_y = height
+        max_x = 0
+        max_y = 0
+
+        while stack:
+            current = stack.pop()
+            pixels.append(current)
+            x = current % width
+            y = current // width
+            min_x = min(min_x, x)
+            min_y = min(min_y, y)
+            max_x = max(max_x, x)
+            max_y = max(max_y, y)
+
+            if x > 0:
+                neighbor = current - 1
+                if not visited[neighbor] and data[neighbor] > 16:
+                    visited[neighbor] = 1
+                    stack.append(neighbor)
+            if x + 1 < width:
+                neighbor = current + 1
+                if not visited[neighbor] and data[neighbor] > 16:
+                    visited[neighbor] = 1
+                    stack.append(neighbor)
+            if y > 0:
+                neighbor = current - width
+                if not visited[neighbor] and data[neighbor] > 16:
+                    visited[neighbor] = 1
+                    stack.append(neighbor)
+            if y + 1 < height:
+                neighbor = current + width
+                if not visited[neighbor] and data[neighbor] > 16:
+                    visited[neighbor] = 1
+                    stack.append(neighbor)
+
         components.append(
             {
-                "label": label_idx,
-                "mask": sub_mask,
-                "area": int(area_val),
-                "bbox": (min_x, min_y, max_x, max_y),
-                "center_x": (min_x + max_x) / 2.0,
+                "pixels": pixels,
+                "area": len(pixels),
+                "bbox": (min_x, min_y, max_x + 1, max_y + 1),
+                "center_x": (min_x + max_x + 1) / 2,
             }
         )
+
     return components
 
 
@@ -167,21 +279,21 @@ def component_group_image(
     components: list[dict[str, object]],
     padding: int = 4,
 ) -> Image.Image:
-    src_arr = np.asarray(source.convert("RGBA"))
-    height, width = src_arr.shape[:2]
-    min_x = max(0, min(c["bbox"][0] for c in components) - padding)
-    min_y = max(0, min(c["bbox"][1] for c in components) - padding)
-    max_x = min(width, max(c["bbox"][2] for c in components) + padding)
-    max_y = min(height, max(c["bbox"][3] for c in components) + padding)
+    width, height = source.size
+    min_x = max(0, min(component["bbox"][0] for component in components) - padding)
+    min_y = max(0, min(component["bbox"][1] for component in components) - padding)
+    max_x = min(width, max(component["bbox"][2] for component in components) + padding)
+    max_y = min(height, max(component["bbox"][3] for component in components) + padding)
 
-    out_arr = np.zeros((max_y - min_y, max_x - min_x, 4), dtype=np.uint8)
-    for c in components:
-        cx0, cy0, cx1, cy1 = c["bbox"]
-        sub_mask = c["mask"]
-        dst_y0, dst_y1 = cy0 - min_y, cy1 - min_y
-        dst_x0, dst_x1 = cx0 - min_x, cx1 - min_x
-        out_arr[dst_y0:dst_y1, dst_x0:dst_x1][sub_mask] = src_arr[cy0:cy1, cx0:cx1][sub_mask]
-    return Image.fromarray(out_arr, mode="RGBA")
+    output = Image.new("RGBA", (max_x - min_x, max_y - min_y), (0, 0, 0, 0))
+    source_pixels = source.load()
+    output_pixels = output.load()
+    for component in components:
+        for pixel_index in component["pixels"]:
+            x = pixel_index % width
+            y = pixel_index // width
+            output_pixels[x - min_x, y - min_y] = source_pixels[x, y]
+    return output
 
 
 def component_frame_groups(
@@ -332,7 +444,7 @@ def extract_state(
     outputs = []
     for index, frame in enumerate(frames):
         output = state_dir / f"{index:02d}.png"
-        frame.save(output, optimize=True, compress_level=9)
+        frame.save(output)
         outputs.append(str(output))
     return {"state": state, "frames": outputs, "method": used_method}
 

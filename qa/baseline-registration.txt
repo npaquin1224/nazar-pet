@@ -1,10 +1,9 @@
-Visible alpha >16 measured on the final atlas. Bottom coordinates are exclusive.
-idle: [193, 193, 193, 193, 193, 193], drift 0 px
-running-right: [193, 193, 193, 193, 193, 193, 193, 193], drift 0 px
-running-left: [193, 193, 193, 193, 193, 193, 193, 193], drift 0 px
-waving: [194, 194, 194, 194], drift 0 px
-jumping: [194, 174, 151, 174, 194], drift 43 px
-failed: [193, 193, 192, 193, 193, 193, 192, 193], drift 1 px
-waiting: [193, 193, 193, 193, 193, 193], drift 0 px
-running: [193, 193, 193, 193, 193, 193], drift 0 px
-review: [193, 193, 193, 193, 193, 193], drift 0 px
+failed baseline 494 mapped to 194 at shared row scale 0.6580
+idle baseline 517 mapped to 194 at shared row scale 0.5188
+jumping baseline 596 mapped to 194 at shared row scale 0.4399
+review baseline 523 mapped to 194 at shared row scale 0.5033
+running baseline 526 mapped to 194 at shared row scale 0.4967
+running-left baseline 482 mapped to 194 at shared row scale 0.6640
+running-right baseline 474 mapped to 194 at shared row scale 0.6862
+waiting baseline 518 mapped to 194 at shared row scale 0.5118
+waving baseline 589 mapped to 194 at shared row scale 0.3680

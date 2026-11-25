@@ -2,6 +2,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -44,7 +45,7 @@ def save_optimized_gif(frames, durations, out_path):
         frame_index = round(index * (len(frames) - 1) / max(1, sample_count - 1))
         strip.paste(frames[frame_index].convert('RGB'), (index * frames[0].width, 0))
     pal_img = strip.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
-    quantized = [f.convert('RGB').quantize(palette=pal_img, dither=Image.Dither.FLOYDSTEINBERG) for f in frames]
+    quantized = [f.convert('RGB').quantize(palette=pal_img, dither=Image.Dither.NONE) for f in frames]
     quantized[0].save(
         out_path,
         save_all=True,
@@ -86,16 +87,35 @@ all_rgba[0].save(
     quality=90,
 )
 
-if shutil.which('ffmpeg'):
-    subprocess.run(
-        [
-            'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
-            '-ignore_loop', '1', '-i', str(output / 'Nazar-motion.gif'),
-            '-movflags', '+faststart', '-pix_fmt', 'yuv420p',
-            str(output / 'Nazar-motion.mp4'),
-        ],
-        check=True,
-    )
+ffmpeg = shutil.which('ffmpeg')
+if ffmpeg is None:
+    try:
+        import imageio_ffmpeg
+    except ImportError:
+        pass
+    else:
+        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+
+if ffmpeg:
+    with tempfile.TemporaryDirectory() as directory:
+        folder = Path(directory)
+        concat = ['ffconcat version 1.0']
+        for index, (frame, duration) in enumerate(zip(all_poses_dark, all_durations, strict=True)):
+            name = f'frame_{index:03}.png'
+            frame.save(folder / name)
+            concat.extend((f"file '{name}'", "option framerate 100", f'duration {duration / 1000:.3f}'))
+        concat.extend((f"file 'frame_{len(all_poses_dark) - 1:03}.png'", "option framerate 100"))
+        sequence = folder / 'frames.ffconcat'
+        sequence.write_text('\n'.join(concat) + '\n', encoding='utf-8')
+        subprocess.run(
+            [
+                ffmpeg, '-hide_banner', '-loglevel', 'error', '-y', '-f', 'concat', '-safe', '0',
+                '-i', str(sequence), '-vf', 'tpad=stop_mode=clone:stop_duration=1,fps=60',
+                '-t', f'{sum(all_durations) / 1000:.3f}', '-c:v', 'libx264', '-crf', '18',
+                '-movflags', '+faststart', '-pix_fmt', 'yuv420p', str(output / 'Nazar-motion.mp4'),
+            ],
+            check=True,
+        )
 
 idle, jump = states['idle'], states['jumping']
 jump_loop = [staged_pose(p, 'Jump', dark_bg, '#DCE4F7') for p in [idle[0], *jump, idle[-1]]]

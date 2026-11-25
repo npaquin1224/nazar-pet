@@ -35,8 +35,13 @@ LOOK_DIRECTION_LABELS = [
 ]
 
 
+def _flat_data(image: Image.Image):
+    getter = getattr(image, "get_flattened_data", None)
+    return getter() if getter is not None else image.getdata()
+
+
 def nontransparent_pixels(image: Image.Image) -> int:
-    return sum(1 for alpha in image.getchannel("A").getdata() if alpha > 16)
+    return sum(1 for alpha in _flat_data(image.getchannel("A")) if alpha > 16)
 
 
 def center_for_bbox(bbox: tuple[int, int, int, int] | None) -> tuple[float, float] | None:
@@ -60,7 +65,7 @@ def cell_from_atlas(atlas: Image.Image, index: int) -> Image.Image:
 
 
 def transparent_hole_rows(image: Image.Image) -> list[dict[str, int]]:
-    alpha = list(image.getchannel("A").getdata())
+    alpha = list(_flat_data(image.getchannel("A")))
     rows = [alpha[index * CELL_WIDTH : (index + 1) * CELL_WIDTH] for index in range(CELL_HEIGHT)]
     holes = []
     for y in range(1, CELL_HEIGHT - 1):
