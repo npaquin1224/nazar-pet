@@ -1,0 +1,1 @@
+Waiting animation concept generated from an earlier Nazar reference. Six still poses explore an expectant upward look and raised arms. The strip has not been animated, registered, validated, or integrated with the current sprite. Review the latest installed artwork before using it as a reference.
