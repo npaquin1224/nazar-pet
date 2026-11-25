@@ -11,7 +11,7 @@ DIRECTION TARGETS — use these to shape the coherent row, not as pixel-level la
 1. `180`: vertical DOWN; no horizontal requirement.
 2. `202.5`: horizontal SCREEN-LEFT and vertical DOWN.
 3. `225`: horizontal SCREEN-LEFT and vertical DOWN.
-4. `247.5`: horizontal SCREEN-LEFT and vertical DOWN.
+4. `247.5`: horizontal SCREEN-LEFT and vertical DOWN. Keep the pupil distinctly below the 270-degree pose while placing it a little higher than in the 225-degree pose.
 5. `270`: horizontal SCREEN-LEFT; no vertical requirement.
 6. `292.5`: horizontal SCREEN-LEFT and vertical UP.
 7. `315`: horizontal SCREEN-LEFT and vertical UP.
