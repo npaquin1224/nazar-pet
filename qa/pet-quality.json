@@ -1,8 +1,8 @@
 {
   "ok": true,
   "atlas": "final/spritesheet-extended.png",
-  "encoded_bytes": 2994636,
-  "sha256": "ae4812c732760c1d3322f7dda570012092a0d220fe86b43525c43c3271e7c3d7",
+  "encoded_bytes": 2994584,
+  "sha256": "f5f365fdfb0fcc875c509d3f46e7aaa5b98a700221918f2780300386ca034964",
   "look_rgba_sha256": "49c78b6abacf678ba02de6d74465bbe1822e83beb4439eca95caeb80b27d8b5b",
   "jump": {
     "idle_baseline": 194,

@@ -11,6 +11,15 @@ import sys
 from PIL import Image
 
 
+def sequence_failed_recoil(frames):
+    order = (0, 2, 4, 3, 5, 6, 1, 7)
+    paths = [frames / "failed" / f"{index:02}.png" for index in range(len(order))]
+    # Read every pose before writing any slot so the source indices stay stable.
+    poses = [path.read_bytes() for path in paths]
+    for path, source in zip(paths, order, strict=True):
+        path.write_bytes(poses[source])
+
+
 def optimize_png(path):
     try:
         import oxipng
@@ -63,6 +72,7 @@ def main():
         "--method", "auto", report=out / "extraction.json")
     run(pipeline / "register_standard_frames.py", frames, "--decoded-dir", decoded,
         "--report-out", out / "baseline-registration.txt")
+    sequence_failed_recoil(frames)
     run("inspect_frames.py", "--frames-root", frames, "--json-out", out / "frame-review.json",
         "--require-components")
     run("compose_atlas.py", "--frames-root", frames, "--output", standard)
