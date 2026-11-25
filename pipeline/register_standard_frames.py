@@ -167,11 +167,15 @@ def register_poses(
         local_bottom = float(lb[3])
         if state == "jumping":
             lift_px = max(0.0, ground_ref - ref_b) * lift_scale
+            if len(poses) == 5 and peak_idx == 2 and idx in (1, 3):
+                # Carry two-thirds of the peak lift at the two in-between poses.
+                lift_px = max(lift_px, peak_raw_lift * lift_scale * (2.0 / 3.0))
             dst_bottom = TARGET_BASELINE - lift_px
         else:
             delta_px = (ref_b - ground_ref) * scale
             # Clamp minor ground foot-contact jitter to <= 0.5px while preserving deliberate lean
-            if abs(delta_px) <= 1.6:
+            # Review pose index 3 stays grounded even as its silhouette compresses.
+            if abs(delta_px) <= 1.6 or (state == "review" and idx == 3):
                 delta_px = 0.0
             dst_bottom = min(float(CELL_HEIGHT - 4), TARGET_BASELINE + delta_px)
 

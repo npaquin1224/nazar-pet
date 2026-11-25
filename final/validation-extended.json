@@ -1,8 +1,8 @@
 {
   "ok": true,
   "file": "final/spritesheet-extended.png",
-  "encoded_bytes": 2996298,
-  "sha256": "3cd3669265bfce1fa6625e38d750f06d6cff9ec3bf0eafd144d497fa5ffeff4b",
+  "encoded_bytes": 2996424,
+  "sha256": "6e7829b710e92b2db25dfabcaa969a4e64d128936d58c81314a2f396aa3a3890",
   "format": "PNG",
   "mode": "RGBA",
   "columns": 8,
@@ -316,7 +316,7 @@
       "row": 4,
       "column": 1,
       "used": true,
-      "nontransparent_pixels": 19234,
+      "nontransparent_pixels": 19233,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
@@ -334,7 +334,7 @@
       "row": 4,
       "column": 3,
       "used": true,
-      "nontransparent_pixels": 18971,
+      "nontransparent_pixels": 18942,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
@@ -622,7 +622,7 @@
       "row": 8,
       "column": 3,
       "used": true,
-      "nontransparent_pixels": 21695,
+      "nontransparent_pixels": 21692,
       "opaque_chroma_key_pixels": 0,
       "chroma_fringe_pixels": 0
     },
