@@ -43,7 +43,7 @@ The shipping sheet is a transparent 1536 × 2288 PNG with 192 × 208 cells. It h
 
 The Pets plugin validates the exact encoded PNG before its upload-session tool transfers it. Pass that session to update_pet using the existing Nazar pet ID, then verify it and the active selection. See pipeline/skills/update-pet/SKILL.md and pipeline/references/upload-session.md for the full sequence.
 
-The default rebuilt sprite SHA-256 is `f5f365fdfb0fcc875c509d3f46e7aaa5b98a700221918f2780300386ca034964`. The optional PNG optimizer can change the encoded hash while preserving every RGBA pixel.
+The default rebuilt sprite SHA-256 is `5b5b6264cf871e03596c3d79a512d3c2fa80828572d7883e80d3962c2d79bdf7`. The optional PNG optimizer can change the encoded hash while preserving every RGBA pixel.
 
 ## Rendering update
 
