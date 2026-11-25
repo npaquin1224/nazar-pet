@@ -7,7 +7,7 @@ import tempfile
 from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, sys.argv[1])
-from render_animation_previews import ROW_DURATIONS
+from render_animation_previews import LOOK_POSE_HOLD_MS, ROW_DURATIONS
 
 run = Path(sys.argv[2])
 output = run / 'previews'
@@ -123,7 +123,7 @@ jump_times = [300, *ROW_DURATIONS['jumping'], 350]
 save_optimized_gif(jump_loop, jump_times, output / 'Nazar-idle-jump-idle.gif')
 
 look = [staged_pose(get_cell(row, column), 'Look', dark_bg, '#DCE4F7') for row in (9, 10) for column in range(8)]
-save_optimized_gif(look, [110] * 16, output / 'Nazar-look-loop.gif')
+save_optimized_gif(look, [LOOK_POSE_HOLD_MS] * len(look), output / 'Nazar-look-loop.gif')
 
 samples = [(idle[0], 'Idle'), (states['waving'][2], 'Wave'), (jump[2], 'Jump apex'), (states['review'][2], 'Review')]
 still_sheet = Image.new('RGB', (192 * len(samples), 232), dark_bg[:3])

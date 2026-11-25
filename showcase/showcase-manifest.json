@@ -2,7 +2,7 @@
   "ok": true,
   "generator": "qa/render_showcase.py",
   "atlas": "final/spritesheet-extended.png",
-  "atlas_sha256": "f5f365fdfb0fcc875c509d3f46e7aaa5b98a700221918f2780300386ca034964",
+  "atlas_sha256": "a43274629a03c7a9d1dea7834b542e83dde2ed06629efdc6e5df0a29e7584d3b",
   "theme": "light",
   "scale": 4,
   "fps": 60,
@@ -86,108 +86,108 @@
     ]
   },
   "shadow": true,
-  "fringe_repaired_pixels": 2149,
+  "fringe_repaired_pixels": 490,
   "environment": {
-    "python": "3.11.2",
-    "pillow": "11.3.0",
-    "numpy": "2.2.6",
-    "ffmpeg": "ffmpeg version n9.0.2-17-g2a571b6068-20260930 Copyright (c) 2000-2026 the FFmpeg developers"
+    "python": "3.14.10",
+    "pillow": "12.3.0",
+    "numpy": "2.5.1",
+    "ffmpeg": "ffmpeg version 8.1.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
   },
   "artifacts": [
     {
       "path": "showcase/Nazar-codex-motion-dark-4x.mp4",
-      "bytes": 2856312,
-      "sha256": "5f57b915f977aeeb5912832acdc1d077f5f1f49761057068cc5e547db5491efe"
+      "bytes": 2899646,
+      "sha256": "922c514e652c48cce79465de9c85e8416e55ded0eaf21a498075390b4bc1566b"
     },
     {
       "path": "showcase/Nazar-codex-motion-dark-authentic.mp4",
-      "bytes": 2032721,
-      "sha256": "41535cb7ffc8eb6c88b71a75b6cd341bcf79d346367ddc2486cd6e57e8067aa5"
+      "bytes": 2068542,
+      "sha256": "6a1282418dde7f8b34e3de47b643d160864d565566cc5930787460e51e6f3adf"
     },
     {
       "path": "showcase/Nazar-codex-motion-dark.gif",
-      "bytes": 4869497,
-      "sha256": "809360246a9505c37a6f0b5f699d1799bfeb102375bb9af5216bb15c3ef84e26"
+      "bytes": 4834412,
+      "sha256": "5d238453f020e84ce5ea09b95d47734099d7fe37848873912fed982e32be95db"
     },
     {
       "path": "showcase/Nazar-codex-motion-light-4x.mp4",
-      "bytes": 2904199,
-      "sha256": "410283dfb9163ac5f97981cdc45d2d575342917ed9249b73996cb343112feaa0"
+      "bytes": 2941869,
+      "sha256": "d293b09e94d01d628d534b18f74624e38fd653804c0be2a3c046eeac19930844"
     },
     {
       "path": "showcase/Nazar-codex-poster.png",
-      "bytes": 3940732,
-      "sha256": "6b53fd30494af76dfe3f4c2583b4fa55324819d7e78b1da23a809cf2e84d698c"
+      "bytes": 3917996,
+      "sha256": "d572d40da0a80feb29ff38e27cf0e601a535c9717a80a20b7993b5dd1f662d05"
     },
     {
       "path": "showcase/states/failed.mp4",
-      "bytes": 397021,
-      "sha256": "2c5e0c707961a0eef9ce66b8d15d29000a85e1a97880f64090f831dc6068fd12"
+      "bytes": 406783,
+      "sha256": "c6f164b3bb27a218bc7340eb4befbabc266c376346ed4401440d69d00c5bdf10"
     },
     {
       "path": "showcase/states/gaze-16-alpha.webp",
-      "bytes": 1531028,
-      "sha256": "97b62cedc5582dfa804e3ca49ee7c1129cbed53631c0fcb7d074c2fadd82d140"
+      "bytes": 1526384,
+      "sha256": "2a1f5718e5e677a13a8e060aa54dba6473bfee4088cc5e1d058af4056b22620e"
     },
     {
       "path": "showcase/states/gaze-16.mp4",
-      "bytes": 502588,
-      "sha256": "c134e44cb4ca3b5f7e12823b54a88773c3026e83d3372e73856899c708204614"
+      "bytes": 427422,
+      "sha256": "f8ec29bbb8aa20a339b32afd141a4bc493fe75acd6c2856fd3c85f1fbb5573c7"
     },
     {
       "path": "showcase/states/idle-jump-idle.mp4",
-      "bytes": 369798,
-      "sha256": "5d466f071af9ba01da854648f56f448098832c051c90454dc825be8078615bd5"
+      "bytes": 391118,
+      "sha256": "2d50b7f895a6a0a628c6050a3abba88e06bc27dce52cb16b4179aef599a01eda"
     },
     {
       "path": "showcase/states/idle-timing-canonical.mp4",
-      "bytes": 218722,
-      "sha256": "30bb272f1dd2f7199c0acef28484b9a329e4f11e0213f654d45abe6153f2dd8c"
+      "bytes": 220021,
+      "sha256": "95e5732cf347f9814d481ef5c8860f7983eae6cc35a4796480802b8a075f3371"
     },
     {
       "path": "showcase/states/idle-timing-proposed.mp4",
-      "bytes": 339000,
-      "sha256": "a8a47aa3b2863918b25ec16e43144f55d26f117aa830854ed48d867e55997e88"
+      "bytes": 338643,
+      "sha256": "5b6d2637383ce3dd606ca11ad0f2a9df246cca5124bd1047dcdf6d5fdbdadc33"
     },
     {
       "path": "showcase/states/idle.mp4",
-      "bytes": 214458,
-      "sha256": "d15253eaced30621ae34ee3e55a5f7eb69bd98e0b85388eaad7bb03ef2675f4f"
+      "bytes": 216467,
+      "sha256": "93009637c26234c59e10af6fe6cdac7829f9c50f69c7250f7f91047d4967b56b"
     },
     {
       "path": "showcase/states/jumping.mp4",
-      "bytes": 258090,
-      "sha256": "75b2e43137c6480a7e67a4629bc52b25e8fe51911aee8ce6ac22785e9731e7b9"
+      "bytes": 280630,
+      "sha256": "57ef4f572858ac83ffc3883ca230eef648b360e0983283e9bb779756581b1633"
     },
     {
       "path": "showcase/states/review.mp4",
-      "bytes": 298420,
-      "sha256": "429aade1f38790c70ea642aae43ef1496cb8d876f9bd63528f6fe270e7ff97ba"
+      "bytes": 305533,
+      "sha256": "8d385b78fc9612a9a5f2f734741504c27308bd3ddad7435648532134bfed5df2"
     },
     {
       "path": "showcase/states/running-left.mp4",
-      "bytes": 361352,
-      "sha256": "edbab96d81f8502b73dd8d2044be1a08da8227215c094dfa6905a9759defa983"
+      "bytes": 359048,
+      "sha256": "1ffa23dcae4378f2b8a07f610fa0cc892b02b3ad97a963d6b890445ed3f8592c"
     },
     {
       "path": "showcase/states/running-right.mp4",
-      "bytes": 370757,
-      "sha256": "c090bc89270460eb7d057be2234b10d7193fb725bf6822e1a39571080215c553"
+      "bytes": 369654,
+      "sha256": "fd123a7ee19ccc8e173ba653ec6972adf5f3ed4da4bf3ded5f2ed52c26f75dda"
     },
     {
       "path": "showcase/states/running.mp4",
-      "bytes": 211611,
-      "sha256": "e0333ef13fde0ba85c8035437089fac94379a67fb26bd2ac0dea803e5a03d9ab"
+      "bytes": 216026,
+      "sha256": "9951ced45cc6c064702e1344a5ebd1df60496feb7c22974e090d0678530bdacc"
     },
     {
       "path": "showcase/states/waiting.mp4",
-      "bytes": 243289,
-      "sha256": "f9d72b6dd862d8f4d5aac94ed13bd52b0df49ab8ccdf3cbb02338e244cf925e6"
+      "bytes": 269357,
+      "sha256": "296cce5c72baea85a754f3359bab354c779ae2d29c5a4820420932b729cc4ef2"
     },
     {
       "path": "showcase/states/waving.mp4",
-      "bytes": 210004,
-      "sha256": "9d9bb96c9eff4e17f40d0a720fa40c1fdbb7d9d0a2775e59fcf9c9b70d8dcb3c"
+      "bytes": 215133,
+      "sha256": "160b7d54fee546cc5006c59ca0eb094350d959ccf422353b24214b46908b5f71"
     }
   ],
   "runs": [
@@ -195,14 +195,15 @@
       "theme": "dark",
       "scale": 4,
       "fps": 60,
-      "only": "all"
+      "only": "all",
+      "fringe_repaired_pixels": 555
     },
     {
       "theme": "light",
       "scale": 4,
       "fps": 60,
       "only": "master",
-      "fringe_repaired_pixels": 2149
+      "fringe_repaired_pixels": 490
     }
   ]
 }
