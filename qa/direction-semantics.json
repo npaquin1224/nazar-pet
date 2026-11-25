@@ -1,0 +1,120 @@
+{
+  "directions": [
+    {
+      "label": "000",
+      "expected": "up",
+      "observed": "up",
+      "verdict": "pass",
+      "evidence": "Pupil and cyan disk centered over the gap between the feet, at the upper lid."
+    },
+    {
+      "label": "022.5",
+      "expected": "up-right",
+      "observed": "up-right",
+      "verdict": "pass",
+      "evidence": "Pupil just right of the gap between the feet, under the upper lid; ice ring much higher than socket center."
+    },
+    {
+      "label": "045",
+      "expected": "up-right",
+      "observed": "up-right",
+      "verdict": "pass",
+      "evidence": "Pupil right of the socket center and high in the blue opening; the outer cyan ring follows."
+    },
+    {
+      "label": "067.5",
+      "expected": "up-right",
+      "observed": "up-right",
+      "verdict": "pass",
+      "evidence": "Pupil close to the right rim and still above the horizontal socket midpoint."
+    },
+    {
+      "label": "090",
+      "expected": "right",
+      "observed": "right",
+      "verdict": "pass",
+      "evidence": "Pupil near the right socket wall at mid-height of the opening."
+    },
+    {
+      "label": "112.5",
+      "expected": "down-right",
+      "observed": "down-right",
+      "verdict": "pass",
+      "evidence": "Pupil near the right side and below the mid-height marked by the prior cardinal."
+    },
+    {
+      "label": "135",
+      "expected": "down-right",
+      "observed": "down-right",
+      "verdict": "pass",
+      "evidence": "Pupil well below and right of center; cyan ring has advanced toward the lower-right edge."
+    },
+    {
+      "label": "157.5",
+      "expected": "down-right",
+      "observed": "down-right",
+      "verdict": "pass",
+      "evidence": "Pupil approaches the bottom of the opening and remains slightly right of the gap between the feet."
+    },
+    {
+      "label": "180",
+      "expected": "down",
+      "observed": "down",
+      "verdict": "pass",
+      "evidence": "Pupil lies over the gap between the feet and close to the bottom boundary of the blue opening."
+    },
+    {
+      "label": "202.5",
+      "expected": "down-left",
+      "observed": "down-left",
+      "verdict": "pass",
+      "evidence": "Pupil left of the midpoint between the feet and low in the opening."
+    },
+    {
+      "label": "225",
+      "expected": "down-left",
+      "observed": "down-left",
+      "verdict": "pass",
+      "evidence": "Pupil far left of socket center and still notably below the horizontal midline."
+    },
+    {
+      "label": "247.5",
+      "expected": "down-left",
+      "observed": "down-left",
+      "verdict": "warning",
+      "evidence": "Pupil close to the left wall and slightly below the following left cardinal; pale ring follows the shallow descent."
+    },
+    {
+      "label": "270",
+      "expected": "left",
+      "observed": "left",
+      "verdict": "pass",
+      "evidence": "Pupil near the left socket wall at the mid-height of the opening."
+    },
+    {
+      "label": "292.5",
+      "expected": "up-left",
+      "observed": "up-left",
+      "verdict": "pass",
+      "evidence": "Pupil near the left wall and visibly above the opening midpoint and previous left cardinal."
+    },
+    {
+      "label": "315",
+      "expected": "up-left",
+      "observed": "up-left",
+      "verdict": "pass",
+      "evidence": "Pupil upper-left of the fixed blue opening, close to the lid, with an offset cyan ring."
+    },
+    {
+      "label": "337.5",
+      "expected": "up-left",
+      "observed": "up-left",
+      "verdict": "pass",
+      "evidence": "Pupil almost at the top of the socket, still left of the gap between the feet before closing the loop."
+    }
+  ],
+  "continuity_review": [
+    "157.5 to 180 and 337.5 to 000 traverse the strip boundary with a consistent silhouette and baseline; pupils progress into their vertical cardinals.",
+    "247.5 to 270 shows an uninterrupted lift at the left rim. The down component at 247.5 is subtle."
+  ]
+}
