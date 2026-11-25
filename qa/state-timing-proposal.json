@@ -1,0 +1,13 @@
+{
+  "_note": "Preview cadence only. The shipped atlas carries no timing metadata, so the ChatGPT client drives real playback; these durations affect showcase renders and the animation-rows reference table. Rationale: hold the readable extreme longer, keep the transition short, and never let a 3-frame blink stretch past ~200 ms.",
+  "_source": "Derived from frame study of final/spritesheet-extended.png; canonical values live in pipeline/skills/create-pet/scripts/render_animation_previews.py",
+  "idle": [1150, 80, 80, 120, 90, 900],
+  "running-right": [90, 90, 90, 90, 90, 90, 90, 170],
+  "running-left": [90, 90, 90, 90, 90, 90, 90, 170],
+  "waving": [110, 120, 420, 300],
+  "jumping": [180, 110, 240, 110, 320],
+  "failed": [110, 90, 150, 120, 110, 160, 220, 420],
+  "waiting": [160, 140, 170, 190, 420, 320],
+  "running": [110, 110, 130, 150, 180, 320],
+  "review": [220, 140, 180, 120, 160, 420]
+}

@@ -1,6 +1,8 @@
 # Nazar
 
-![Nazar animation preview](previews/Nazar-motion.gif)
+<img src="showcase/Nazar-hero.png" width="520" alt="Nazar, a glossy cobalt-glass nazar bead with one large watchful eye, teal rim light on the left and violet on the right">
+
+![Nazar animation preview](showcase/Nazar-codex-motion-dark.gif)
 
 Nazar is an installed custom ChatGPT pet. Its visible behavior comes from an animated PNG sprite sheet. This kit contains the actual art, individual frames, prompts, layout guides, previews, validation reports, and Python and PowerShell tooling used to build and check that sheet.
 
@@ -11,8 +13,33 @@ Nazar is an installed custom ChatGPT pet. Its visible behavior comes from an ani
 | frames/ | Registered standard animation frames |
 | prompts/ and references/ | Generation prompts, canonical and layout references |
 | previews/ | Full motion, individual states, jump transition, and gaze loop |
+| showcase/ | High-fidelity renders: key art, poster, 60 fps motion, gaze loop |
 | qa/ | Visual notes, current validation reports, and preview tooling |
 | pipeline/ | Bundled Pets scripts and contracts plus Nazar’s baseline registration helper |
+
+## Showcase
+
+The strongest presentation of the sheet: [key art](showcase/Nazar-hero.png), a [one-page poster](showcase/Nazar-codex-poster.png) of all nine states plus the sixteen gaze directions, an 11-second [60 fps cut](showcase/Nazar-codex-motion-dark-4x.mp4), and a [1:1 authentic cut](showcase/Nazar-codex-motion-dark-authentic.mp4) that shows playback without inbetweens. See [showcase/README.md](showcase/README.md).
+
+The renders are generated from `final/spritesheet-extended.png` and never modify it, so the sheet's hash, reports, and upload path are unaffected.
+
+    python qa/render_showcase.py --output-dir showcase --theme dark
+
+## What makes it a Codex pet
+
+The sheet's nine standard rows are named for pet behavior. In a coding session they read as product moments.
+
+| Row | Pet state | Moment |
+|---|---|---|
+| 0 | `idle` | Ready. Frame 0 is the reduced-motion still |
+| 1-2 | `running-right`, `running-left` | Work moving out and back |
+| 3 | `waving` | Session start |
+| 4 | `jumping` | Task or build started |
+| 5 | `failed` | Tests red, then recovery |
+| 6 | `waiting` | Blocked on your approval |
+| 7 | `running` | Thinking through the task |
+| 8 | `review` | Reading the diff |
+| 9-10 | `look 000-337.5` | Sixteen clockwise gaze directions |
 
 ## Quickest way to update it in ChatGPT
 
@@ -53,3 +80,4 @@ The default rebuilt sprite SHA-256 is `f5f365fdfb0fcc875c509d3f46e7aaa5b98a70022
 - The failure animation reaches its deepest tuck earlier and recovers more gradually using the existing eight poses.
 - Generates dark and light GIFs, transparent animated WebP, per-state loops, and a 2× inspection sheet. The MP4 uses RGB frames directly.
 - Keeps visual review tied to the reviewed gaze pixels. Pets preflight reports come from the Pets validator for the exact encoded file.
+- Supersampled renders in `showcase/` show 2,571 fully opaque near-magenta pixels remaining at silhouette edges. They are invisible at pet size and the showcase repairs them for display only; `despill_chroma_edges.py` is still the right place to remove them from the sheet itself.

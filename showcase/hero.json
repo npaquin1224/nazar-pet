@@ -1,0 +1,16 @@
+{
+  "artifact": "showcase/Nazar-hero.png",
+  "kind": "promotional hero render (not sprite art; never uploaded to the pet)",
+  "generator": "text+image-guided generative render",
+  "grounding_reference": {
+    "path": "references/canonical-base.png",
+    "sha256": "1841a1772e2f9606fccc874851e2d0c5a767d9bd31a93a568dfef6b49e23c5a7"
+  },
+  "source_render": {
+    "path": "showcase/hero-raw.png",
+    "sha256": "6dddef314218828b1dea1d3aa6c1de2ebe21f81861dcce71528967997a3619d0"
+  },
+  "prompt": "Premium 3D character hero render of this exact mascot, identity unchanged: glossy near-black cobalt-glass sphere, one large concentric nazar eye (cobalt iris, glacier-cyan ring, pale ice ring, near-black pupil with one small white specular), soft eyelid ridge, two rounded flipper paws, two tiny navy feet, teal rim light left, violet rim light right; deep navy studio gradient, soft elliptical floor pool, cyan-violet bloom on its own rim only, no props, no text, no logo.",
+  "postprocess": "0.72 bottom vignette, letterspaced NAZAR wordmark, DejaVu Sans Bold + DejaVu Sans Mono",
+  "identity_check": "same character construction: bead silhouette, single concentric eye, teal/violet opposing rim lights, flipper paws, twin feet, eyelid ridge"
+}
