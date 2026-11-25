@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
-"""Assemble a standard ChatGPT pet atlas plus 16 look-direction frames (vectorized + scale-harmonized)."""
+"""Assemble a standard ChatGPT pet atlas plus 16 look-direction frames."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
+import statistics
 import sys
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
-from scipy import ndimage
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from extract_strip_frames import component_frame_groups, component_group_image, remove_chroma_background
+from extract_strip_frames import (
+    component_frame_groups,
+    component_group_image,
+    remove_chroma_background,
+)
 
 COLUMNS = 8
 STANDARD_ROWS = 9
@@ -56,15 +60,17 @@ class CellGeometry:
 
 
 def edge_alpha_count(image: Image.Image, margin: int) -> int:
-    if margin <= 0:
-        return 0
-    visible = np.asarray(image.getchannel("A")) > 0
-    return sum(int(strip.sum()) for strip in (
-        visible[:margin, :],
-        visible[-margin:, :],
-        visible[:, :margin],
-        visible[:, -margin:],
-    ))
+    alpha = image.getchannel("A")
+    width, height = alpha.size
+    total = 0
+    for box in (
+        (0, 0, width, margin),
+        (0, height - margin, width, height),
+        (0, 0, margin, height),
+        (width - margin, 0, width, height),
+    ):
+        total += sum(alpha.crop(box).histogram()[1:])
+    return total
 
 
 def parse_hex_color(value: str) -> tuple[int, int, int]:
@@ -73,18 +79,13 @@ def parse_hex_color(value: str) -> tuple[int, int, int]:
     return tuple(int(value[index : index + 2], 16) for index in (1, 3, 5))
 
 
-def remove_small_detached_components(image: Image.Image) -> Image.Image:
-    arr = np.asarray(image.convert("RGBA")).copy()
-    mask = arr[:, :, 3] > 16
-    labeled, count = ndimage.label(mask)
-    if count <= 1:
-        return Image.fromarray(arr, mode="RGBA")
-    areas = ndimage.sum(mask, labeled, index=range(1, count + 1))
-    largest = max(areas)
-    for idx, area in enumerate(areas, start=1):
-        if area < largest and area < MIN_DETACHED_COMPONENT_PIXELS:
-            arr[labeled == idx] = 0
-    return Image.fromarray(arr, mode="RGBA")
+def color_distance(
+    red: int,
+    green: int,
+    blue: int,
+    key: tuple[int, int, int],
+) -> float:
+    return math.sqrt((red - key[0]) ** 2 + (green - key[1]) ** 2 + (blue - key[2]) ** 2)
 
 
 def fit_to_cell(image: Image.Image) -> Image.Image:
@@ -108,20 +109,81 @@ def fit_to_cell(image: Image.Image) -> Image.Image:
     return remove_small_detached_components(target)
 
 
-def cell_geometry(cell: Image.Image) -> CellGeometry | None:
-    alpha = np.asarray(cell.getchannel("A"))
-    ys, xs = np.where(alpha > 16)
-    if len(ys) == 0:
-        return None
-    top = int(ys.min())
-    bottom = int(ys.max()) + 1
+def remove_small_detached_components(image: Image.Image) -> Image.Image:
+    rgba = image.convert("RGBA")
+    alpha = rgba.getchannel("A")
+    width, height = rgba.size
+    visited: set[tuple[int, int]] = set()
+    components: list[list[tuple[int, int]]] = []
+
+    for y in range(height):
+        for x in range(width):
+            if (x, y) in visited or alpha.getpixel((x, y)) <= 16:
+                continue
+
+            component: list[tuple[int, int]] = []
+            stack = [(x, y)]
+            visited.add((x, y))
+            while stack:
+                current_x, current_y = stack.pop()
+                component.append((current_x, current_y))
+                for next_x, next_y in (
+                    (current_x - 1, current_y),
+                    (current_x + 1, current_y),
+                    (current_x, current_y - 1),
+                    (current_x, current_y + 1),
+                ):
+                    if (
+                        next_x < 0
+                        or next_x >= width
+                        or next_y < 0
+                        or next_y >= height
+                        or (next_x, next_y) in visited
+                        or alpha.getpixel((next_x, next_y)) <= 16
+                    ):
+                        continue
+                    visited.add((next_x, next_y))
+                    stack.append((next_x, next_y))
+            components.append(component)
+
+    if not components:
+        return rgba
+
+    largest = max(len(component) for component in components)
+    pixels = rgba.load()
+    for component in components:
+        if len(component) == largest or len(component) >= MIN_DETACHED_COMPONENT_PIXELS:
+            continue
+        for x, y in component:
+            pixels[x, y] = (0, 0, 0, 0)
+    return rgba
+
+
+def opaque_points(image: Image.Image) -> list[tuple[int, int]]:
+    alpha = image.getchannel("A")
+    width, height = image.size
+    return [(x, y) for y in range(height) for x in range(width) if alpha.getpixel((x, y)) > 16]
+
+
+def lower_band_points(
+    points: list[tuple[int, int]], top: int, bottom: int
+) -> list[tuple[int, int]]:
     threshold = top + (bottom - top) * 0.72
-    lower_xs = xs[ys >= threshold]
-    if len(lower_xs) == 0:
-        lower_xs = xs
+    return [(x, y) for x, y in points if y >= threshold] or points
+
+
+def cell_geometry(cell: Image.Image) -> CellGeometry | None:
+    points = opaque_points(cell)
+    if not points:
+        return None
+
+    ys = [y for _, y in points]
+    top = min(ys)
+    bottom = max(ys) + 1
+    lower_points = lower_band_points(points, top, bottom)
     return CellGeometry(
         height=bottom - top,
-        lower_center_x=float(lower_xs.mean()),
+        lower_center_x=sum(x for x, _ in lower_points) / len(lower_points),
         bottom=bottom,
     )
 
@@ -170,6 +232,7 @@ def normalize_cells_to_reference(
 
 
 def normalization_scale(cells: list[Image.Image], target: CellGeometry) -> float:
+
     geometries = [cell_geometry(cell) for cell in cells]
     if any(geometry is None for geometry in geometries):
         raise SystemExit("look direction cells must contain visible pixels")
@@ -200,9 +263,14 @@ def normalization_scale(cells: list[Image.Image], target: CellGeometry) -> float
 
 
 def clear_transparent_rgb(image: Image.Image) -> Image.Image:
-    arr = np.asarray(image.convert("RGBA")).copy()
-    arr[arr[:, :, 3] == 0] = 0
-    return Image.fromarray(arr, mode="RGBA")
+    rgba = image.convert("RGBA")
+    data = bytearray(rgba.tobytes())
+    for index in range(0, len(data), 4):
+        if data[index + 3] == 0:
+            data[index] = 0
+            data[index + 1] = 0
+            data[index + 2] = 0
+    return Image.frombytes("RGBA", rgba.size, bytes(data))
 
 
 def load_base_rows(base_atlas_path: Path) -> Image.Image:
@@ -236,7 +304,177 @@ def extract_row_strip_cells(
             f"could not identify {COLUMNS} ordered pose groups in {row_strip_path}; "
             "resynthesize the complete source row with separated poses"
         )
-    return [component_group_image(strip, group) for group in groups]
+    return [component_group_image(strip, group, padding=8) for group in groups]
+
+
+def _subpixel_cell_stats(cell: Image.Image) -> tuple[float, float, float, float, float]:
+    alpha = cell.getchannel("A")
+    width, height = alpha.size
+    raw_a = alpha.tobytes()
+    total_a = 0.0
+    sum_x = 0.0
+    min_x = width
+    max_x = -1
+    min_y = height
+    max_y = -1
+    for y in range(height):
+        row_off = y * width
+        for x in range(width):
+            a = raw_a[row_off + x]
+            if a > 16:
+                sum_x += (x + 0.5) * a
+                total_a += a
+                if a > 48:
+                    if x < min_x:
+                        min_x = x
+                    if x > max_x:
+                        max_x = x
+                    if y < min_y:
+                        min_y = y
+                    if y > max_y:
+                        max_y = y
+    if total_a <= 0:
+        raise SystemExit("look direction cells must contain visible pixels")
+    if max_y < min_y or max_x < min_x:
+        bbox = cell.getbbox()
+        assert bbox is not None
+        min_x, min_y, max_x, max_y = bbox[0], bbox[1], bbox[2] - 1, bbox[3] - 1
+    cx = sum_x / total_a
+    bottom = float(max_y + 1)
+    span_w = max(1.0, float(max_x - min_x + 1))
+    span_h = max(1.0, bottom - float(min_y))
+    return cx, float(min_y), bottom, span_w, span_h
+
+
+def _affine_place_look_cell(
+    cell: Image.Image,
+    stats: tuple[float, float, float, float, float],
+    *,
+    sx: float,
+    sy: float,
+    target_cx: float,
+    target_bottom: float,
+    dx: float = 0.0,
+    dy: float = 0.0,
+) -> Image.Image:
+    cx, _top, bottom, _span_w, _span_h = stats
+    inv_sx = 1.0 / sx
+    inv_sy = 1.0 / sy
+    tx = cx - (target_cx + dx) * inv_sx
+    ty = bottom - (target_bottom + dy) * inv_sy
+    placed = cell.transform(
+        (CELL_WIDTH, CELL_HEIGHT),
+        Image.Transform.AFFINE,
+        (inv_sx, 0.0, tx, 0.0, inv_sy, ty),
+        resample=Image.Resampling.BICUBIC,
+    )
+    return clear_transparent_rgb(remove_small_detached_components(placed))
+
+
+def _alpha_diff_count(alpha_a: bytes, alpha_b: bytes) -> int:
+    return sum(1 for a, b in zip(alpha_a, alpha_b) if abs(a - b) > 16)
+
+
+def register_coherent_look_row(
+    raw_cells: list[Image.Image],
+    target: CellGeometry,
+    *,
+    anchor_prev_alpha: bytes | None = None,
+    anchor_loop_alpha: bytes | None = None,
+) -> tuple[list[Image.Image], float]:
+    stats = [_subpixel_cell_stats(c) for c in raw_cells]
+    med_w = float(statistics.median(s[3] for s in stats))
+    med_h = float(statistics.median(s[4] for s in stats))
+    target_h = min(float(target.height) + 2.5, float(CELL_HEIGHT - 14))
+    base_scale = min(
+        target_h / med_h,
+        (CELL_WIDTH - 12.0) / med_w,
+        (float(target.bottom) - 6.0) / med_h,
+    )
+    target_cx = round(target.lower_center_x)
+    target_bottom = float(target.bottom)
+
+    sx = base_scale
+    sy = base_scale
+    if anchor_prev_alpha is not None and anchor_loop_alpha is not None:
+        best_boundary = 10**9
+        best_mult = (1.0, 1.0)
+        for mx in (0.994, 0.999, 1.003, 1.007, 1.011):
+            for my in (0.996, 1.001, 1.005, 1.009, 1.013):
+                cand_first = _affine_place_look_cell(
+                    raw_cells[0],
+                    stats[0],
+                    sx=base_scale * mx,
+                    sy=base_scale * my,
+                    target_cx=target_cx,
+                    target_bottom=target_bottom,
+                )
+                cand_last = _affine_place_look_cell(
+                    raw_cells[-1],
+                    stats[-1],
+                    sx=base_scale * mx,
+                    sy=base_scale * my,
+                    target_cx=target_cx,
+                    target_bottom=target_bottom,
+                )
+                score = _alpha_diff_count(
+                    cand_first.getchannel("A").tobytes(), anchor_prev_alpha
+                ) + _alpha_diff_count(
+                    cand_last.getchannel("A").tobytes(), anchor_loop_alpha
+                )
+                if score < best_boundary:
+                    best_boundary = score
+                    best_mult = (mx, my)
+        sx = base_scale * best_mult[0]
+        sy = base_scale * best_mult[1]
+
+    aligned: list[Image.Image] = []
+    if anchor_prev_alpha is None:
+        first_cell = _affine_place_look_cell(
+            raw_cells[0],
+            stats[0],
+            sx=sx,
+            sy=sy,
+            target_cx=target_cx,
+            target_bottom=target_bottom,
+        )
+        ref_alpha = first_cell.getchannel("A").tobytes()
+        aligned.append(first_cell)
+        prev_alpha = ref_alpha
+        start_idx = 1
+    else:
+        ref_alpha = anchor_loop_alpha if anchor_loop_alpha is not None else anchor_prev_alpha
+        prev_alpha = anchor_prev_alpha
+        start_idx = 0
+
+    offsets = (-0.5, -0.25, 0.0, 0.25, 0.5)
+    for idx in range(start_idx, len(raw_cells)):
+        best_cell: Image.Image | None = None
+        best_alpha: bytes = b""
+        best_score = 10**9
+        for dx in offsets:
+            for dy in offsets:
+                cand = _affine_place_look_cell(
+                    raw_cells[idx],
+                    stats[idx],
+                    sx=sx,
+                    sy=sy,
+                    target_cx=target_cx,
+                    target_bottom=target_bottom,
+                    dx=dx,
+                    dy=dy,
+                )
+                ca = cand.getchannel("A").tobytes()
+                score = _alpha_diff_count(ca, ref_alpha) + _alpha_diff_count(ca, prev_alpha)
+                if score < best_score:
+                    best_score = score
+                    best_cell = cand
+                    best_alpha = ca
+        assert best_cell is not None
+        aligned.append(best_cell)
+        prev_alpha = best_alpha
+
+    return aligned, base_scale
 
 
 def validate_normalized_look_cells(
@@ -440,7 +678,7 @@ def save_registered_row(cells: list[Image.Image], path: Path) -> None:
     for column, cell in enumerate(cells):
         row.alpha_composite(cell, (column * CELL_WIDTH, 0))
     path.parent.mkdir(parents=True, exist_ok=True)
-    clear_transparent_rgb(row).save(path, optimize=True, compress_level=9)
+    clear_transparent_rgb(row).save(path)
     print(f"wrote {path}")
 
 
@@ -496,19 +734,18 @@ def main() -> None:
     if args.registered_row_9:
         if not args.look_row_10 or not args.row_9_registration:
             raise SystemExit("--registered-row-9 requires --look-row-10 and --row-9-registration")
+        _ = load_registration_scale(Path(args.row_9_registration).expanduser().resolve())
         row_9_cells = load_registered_row(Path(args.registered_row_9).expanduser().resolve())
-        row_10_cells = extract_row_strip_cells(
+        row_10_raw = extract_row_strip_cells(
             Path(args.look_row_10).expanduser().resolve(),
             chroma_key,
             args.chroma_threshold,
         )
-        # Harmonize row 10 scale to match neutral/row-9 silhouette height without clipping
-        row_9_scale = load_registration_scale(Path(args.row_9_registration).expanduser().resolve())
-        row_10_scale = min(row_9_scale, normalization_scale(row_10_cells, target))
-        row_10_cells = normalize_cells_to_reference(
-            row_10_cells,
-            neutral,
-            row_10_scale,
+        row_10_cells, scale = register_coherent_look_row(
+            row_10_raw,
+            target,
+            anchor_prev_alpha=row_9_cells[-1].getchannel("A").tobytes(),
+            anchor_loop_alpha=row_9_cells[0].getchannel("A").tobytes(),
         )
         validate_normalized_look_cells(
             row_10_cells,
@@ -517,6 +754,44 @@ def main() -> None:
             args.edge_pixel_threshold,
         )
         cells = [*row_9_cells, *row_10_cells]
+    elif args.look_row_9 and args.look_row_10:
+        row_9_raw = extract_row_strip_cells(
+            Path(args.look_row_9).expanduser().resolve(),
+            chroma_key,
+            args.chroma_threshold,
+        )
+        row_10_raw = extract_row_strip_cells(
+            Path(args.look_row_10).expanduser().resolve(),
+            chroma_key,
+            args.chroma_threshold,
+        )
+        row_9_cells, scale = register_coherent_look_row(row_9_raw, target)
+        row_10_cells, _ = register_coherent_look_row(
+            row_10_raw,
+            target,
+            anchor_prev_alpha=row_9_cells[-1].getchannel("A").tobytes(),
+            anchor_loop_alpha=row_9_cells[0].getchannel("A").tobytes(),
+        )
+        cells = [*row_9_cells, *row_10_cells]
+        validate_normalized_look_cells(
+            cells,
+            0,
+            args.edge_margin,
+            args.edge_pixel_threshold,
+        )
+    elif args.look_row_9:
+        row_9_raw = extract_row_strip_cells(
+            Path(args.look_row_9).expanduser().resolve(),
+            chroma_key,
+            args.chroma_threshold,
+        )
+        cells, scale = register_coherent_look_row(row_9_raw, target)
+        validate_normalized_look_cells(
+            cells,
+            0,
+            args.edge_margin,
+            args.edge_pixel_threshold,
+        )
     else:
         cells = load_look_cells(args, chroma_key)
         scale = normalization_scale(cells, target)
@@ -551,7 +826,7 @@ def main() -> None:
 
     output = Path(args.output).expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    atlas.save(output, optimize=True, compress_level=9)
+    atlas.save(output)
     print(f"wrote {output}")
 
     if args.webp_output:

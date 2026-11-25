@@ -101,7 +101,7 @@ def main() -> None:
 
     output = Path(args.output).expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    sheet.save(output)
+    sheet.save(output, format="PNG", optimize=True, compress_level=9)
     print(f"wrote {output}")
 
 

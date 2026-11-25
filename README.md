@@ -24,26 +24,30 @@ For a name or description change, give the new wording. The Pets update tool can
 
 ## Rebuild the image locally
 
-Use PowerShell 7 and Python 3.12 or newer. FFmpeg is optional and produces the MP4 preview. From the repository root, install the pinned Python dependencies and rebuild into a fresh directory.
+Use Python 3.12 or newer. The PowerShell wrapper requires PowerShell 7. FFmpeg or the optional Python package imageio-ffmpeg produces the MP4 preview. From the repository root, install the pinned Python dependencies and rebuild into a fresh directory.
 
     python -m pip install -r requirements.txt
+    python rebuild_nazar.py --output-dir revision-01
+
+The PowerShell wrapper runs the same builder. Use a fresh output directory for each build.
+
     pwsh -NoProfile -File .\Rebuild-Nazar.ps1 -OutputDir .\revision-01
 
-The script rebuilds the PNG from the source strips in decoded/, runs structural and animation quality validation, and generates contact sheets plus dark, light, and transparent motion previews. It performs local file operations only.
+The script rebuilds the PNG from the source strips in decoded/, runs structural and animation quality validation, and generates contact sheets plus dark, light, and transparent motion previews. It writes to the requested output directory. For an additional lossless compression pass, install pyoxipng in an environment that supports it and use `--optimize-png` (PowerShell `-OptimizePng`). The builder checks pixel equality after compression, then validates the newly encoded bytes.
 
-For an art change, replace the affected source strip in a working copy of decoded/ and rebuild. The original prompts and layout guides identify the required frame counts. Use the current pet atlas and the canonical artwork as identity references when generating replacement visuals, then review the new sprite at normal pet size. If you change the gaze, rebuild the affected eight-pose look row together so adjacent poses retain the same silhouette and move clockwise consistently. If the neutral pose or gaze pixels change, the build still generates previews and a quality report. Review the new direction sheet, record the sixteen verdicts and the `look_rgba_sha256` from the report, then rebuild into a fresh directory with `-DirectionSemantics <path>`. See pipeline/references/sprite-sheet-contract.md for the full review sequence.
+For an art change, replace the affected source strip in a working copy of decoded/ and rebuild. The original prompts and layout guides identify the required frame counts. Use the current pet atlas and the canonical artwork as identity references when generating replacement visuals, then review the new sprite at normal pet size. If you change the gaze, rebuild the affected eight-pose look row together so adjacent poses retain the same silhouette and move clockwise consistently. If the neutral pose or gaze pixels change, the build still generates previews and a quality report. Review the new direction sheet, record the sixteen verdicts and the `look_rgba_sha256` from the report, then rebuild into a fresh directory with `--direction-semantics <path>` (PowerShell `-DirectionSemantics <path>`). See pipeline/references/sprite-sheet-contract.md for the full review sequence.
 
-The shipping sheet is a transparent 1536 × 2288 PNG with 192 × 208 cells. It has nine state rows and two gaze rows. The fifteen unused cells are transparent. The bundled blind review records the original artwork. Rebuild and review new previews for each art revision.
+The shipping sheet is a transparent 1536 × 2288 PNG with 192 × 208 cells. It has nine state rows and two gaze rows. The fifteen unused cells are transparent. The bundled blind review is bound to the checked-in neutral and gaze pixels. Rebuild and review new previews for each art revision.
 
 ## Apply the revised pet
 
 The Pets plugin validates the exact encoded PNG before its upload-session tool transfers it. Pass that session to update_pet using the existing Nazar pet ID, then verify it and the active selection. See pipeline/skills/update-pet/SKILL.md and pipeline/references/upload-session.md for the full sequence.
 
-The rebuilt sprite SHA-256 is `b5e8ea5831b5f5bb2b4c09c5b5170bdc4a01fcbfea0d67cbbcc8f67169672baf`.
+The default rebuilt sprite SHA-256 is `6ab2d2a809d68d8de8da344393846ccff01aa6c872a95e1d8084b8b58e6239dc`. The optional PNG optimizer can change the encoded hash while preserving every RGBA pixel.
 
-## Pipeline update
+## Rendering update
 
-- Aligns grounded animation frames and keeps the 43 px jump lift.
-- Matches both gaze rows to the idle scale. The rebuilt gaze loop has zero continuity warnings.
-- Uses NumPy and SciPy for image processing, with anti-aliased chroma extraction and lossless PNG compression.
-- Generates dark and light animation GIFs, a transparent lossless animated WebP, and a 2× inspection sheet.
+- Uses exterior-connected soft chroma recovery and single-pass body registration. The new jump keeps Nazar's body size, lifts 30 px, and lands on the idle baseline.
+- Registers both gaze rows at subpixel precision. The continuity check reports zero warnings. The 247.5-degree down-left gaze remains subtle in blind review.
+- Generates dark and light GIFs, transparent animated WebP, per-state loops, and a 2× inspection sheet. The MP4 uses RGB frames directly.
+- Keeps visual review tied to the reviewed gaze pixels. Pets preflight reports come from the Pets validator for the exact encoded file.

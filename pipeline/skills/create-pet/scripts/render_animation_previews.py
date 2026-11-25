@@ -42,17 +42,43 @@ def load_frames(frames_root: Path, state: str, expected_count: int) -> list[Imag
     return frames
 
 
+def _quantize_gif_frame(frame: Image.Image) -> tuple[Image.Image, int | None]:
+    if "A" not in frame.mode:
+        rgb = frame.convert("RGB")
+        return rgb.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE), None
+
+    rgba = frame.convert("RGBA")
+    alpha = rgba.getchannel("A")
+    # Unpremultiply/composite semi-transparent edge pixels cleanly against deep navy matte
+    matte = Image.new("RGBA", rgba.size, (10, 15, 36, 255))
+    matte.alpha_composite(rgba)
+    rgb = matte.convert("RGB")
+    quantized = rgb.quantize(colors=255, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE)
+    palette = quantized.getpalette() or [0] * (255 * 3)
+    palette = (palette + [0] * 768)[:765] + [0, 0, 0]
+    quantized.putpalette(palette)
+
+    mask = alpha.point(lambda a: 255 if a < 96 else 0)
+    quantized.paste(255, mask=mask)
+    return quantized, 255
+
+
 def save_preview(frames: list[Image.Image], durations: list[int], output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
-    frames[0].save(
-        output,
-        save_all=True,
-        append_images=frames[1:],
-        duration=durations,
-        loop=0,
-        disposal=2,
-        optimize=False,
-    )
+    processed = [_quantize_gif_frame(frame) for frame in frames]
+    gif_frames = [item[0] for item in processed]
+    transparency = processed[0][1]
+    save_kwargs: dict[str, object] = {
+        "save_all": True,
+        "append_images": gif_frames[1:],
+        "duration": durations,
+        "loop": 0,
+        "disposal": 2,
+        "optimize": True,
+    }
+    if transparency is not None:
+        save_kwargs["transparency"] = transparency
+    gif_frames[0].save(output, **save_kwargs)
 
 
 def main() -> None:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Remove chroma-key matte contamination from transparent sprite edges (vectorized linear-light)."""
+"""Remove chroma-key matte contamination from transparent sprite edges."""
 
 from __future__ import annotations
 
@@ -8,13 +8,11 @@ import json
 import re
 from pathlib import Path
 
-import numpy as np
-from PIL import Image
-from scipy import ndimage
+from PIL import Image, ImageFilter
 
 CELL_WIDTH = 192
 CELL_HEIGHT = 208
-ALGORITHM = "edge-local-chroma-spill-suppression-vectorized"
+ALGORITHM = "edge-local-chroma-spill-suppression"
 
 
 def parse_hex_color(value: str) -> tuple[int, int, int]:
@@ -23,38 +21,179 @@ def parse_hex_color(value: str) -> tuple[int, int, int]:
     return tuple(int(value[index : index + 2], 16) for index in (1, 3, 5))
 
 
-def srgb_to_linear_arr(arr: np.ndarray) -> np.ndarray:
-    return np.where(arr <= 0.04045, arr / 12.92, ((arr + 0.055) / 1.055) ** 2.4)
+def srgb_to_linear(value: float) -> float:
+    if value <= 0.04045:
+        return value / 12.92
+    return ((value + 0.055) / 1.055) ** 2.4
 
 
-def linear_to_srgb_arr(arr: np.ndarray) -> np.ndarray:
-    arr = np.clip(arr, 0.0, 1.0)
-    return np.where(arr <= 0.0031308, arr * 12.92, 1.055 * (arr ** (1.0 / 2.4)) - 0.055)
+def linear_to_srgb(value: float) -> float:
+    if value <= 0.0031308:
+        return value * 12.92
+    return 1.055 * value ** (1 / 2.4) - 0.055
 
 
-def atlas_edge_band_mask(alpha: np.ndarray, radius: int) -> np.ndarray:
-    height, width = alpha.shape
-    visible = alpha > 0
-    struct = np.ones((radius * 2 + 1, radius * 2 + 1), dtype=bool)
+def _flat_data(image: Image.Image):
+    getter = getattr(image, "get_flattened_data", None)
+    return getter() if getter is not None else image.getdata()
+
+
+def edge_band(alpha: Image.Image, radius: int) -> list[bool]:
+    visible = [value > 0 for value in _flat_data(alpha)]
+    transparent = Image.new("L", alpha.size)
+    transparent.putdata([0 if value else 255 for value in visible])
+    expanded = transparent.filter(ImageFilter.MaxFilter(radius * 2 + 1))
+    return [is_visible and nearby > 0 for is_visible, nearby in zip(visible, _flat_data(expanded))]
+
+
+def atlas_edge_band(alpha: Image.Image, radius: int) -> list[bool]:
+    width, height = alpha.size
     if width % CELL_WIDTH or height % CELL_HEIGHT:
-        expanded = ndimage.binary_dilation(~visible, structure=struct)
-        return visible & expanded
+        return edge_band(alpha, radius)
 
-    boundary = np.zeros_like(visible)
+    boundary = [False] * (width * height)
+
     for top in range(0, height, CELL_HEIGHT):
         for left in range(0, width, CELL_WIDTH):
-            cell_vis = visible[top : top + CELL_HEIGHT, left : left + CELL_WIDTH]
-            if np.any(cell_vis):
-                expanded = ndimage.binary_dilation(~cell_vis, structure=struct)
-                boundary[top : top + CELL_HEIGHT, left : left + CELL_WIDTH] = cell_vis & expanded
+            cell = alpha.crop((left, top, left + CELL_WIDTH, top + CELL_HEIGHT))
+            for index, is_boundary in enumerate(edge_band(cell, radius)):
+                if is_boundary:
+                    x = left + index % CELL_WIDTH
+                    y = top + index // CELL_WIDTH
+                    boundary[y * width + x] = True
     return boundary
+
+
+def chroma_similarity(
+    color: tuple[float, float, float],
+    key: tuple[float, float, float],
+) -> float:
+    color_mean = sum(color) / 3
+    key_mean = sum(key) / 3
+    color_chroma = tuple(channel - color_mean for channel in color)
+    key_chroma = tuple(channel - key_mean for channel in key)
+    denominator = sum(channel * channel for channel in color_chroma) * sum(
+        channel * channel for channel in key_chroma
+    )
+    if denominator <= 1e-12:
+        return -1
+    return (
+        sum(
+            color_channel * key_channel
+            for color_channel, key_channel in zip(color_chroma, key_chroma)
+        )
+        / denominator**0.5
+    )
+
+
+def chroma_saturation(color: tuple[float, float, float]) -> float:
+    maximum = max(color)
+    if maximum <= 0:
+        return 0
+    return (maximum - min(color)) / maximum
+
+
+def suppress_boundary_spill(
+    pixels: list[tuple[int, int, int, int]],
+    *,
+    size: tuple[int, int],
+    boundary: list[bool],
+    key_linear: tuple[float, float, float],
+    strength: float,
+    edge_radius: int,
+    spill_tolerance: float,
+    minimum_saturation: float,
+) -> tuple[list[tuple[int, int, int, int]], list[bool]]:
+    width, height = size
+    colors_linear = [
+        tuple(srgb_to_linear(channel / 255) for channel in pixel[:3]) for pixel in pixels
+    ]
+    similarity_threshold = 1 - min(spill_tolerance, 1)
+    pending = [
+        pixel[3] > 0
+        and is_boundary
+        and (
+            pixel[3] < 250
+            or (
+                chroma_saturation(color) >= minimum_saturation
+                and chroma_similarity(color, key_linear) >= similarity_threshold
+            )
+        )
+        for pixel, color, is_boundary in zip(pixels, colors_linear, boundary)
+    ]
+    filled = [pixel[3] > 0 and not is_pending for pixel, is_pending in zip(pixels, pending)]
+    output = pixels.copy()
+    suppressed = [False] * len(pixels)
+    cell_width = CELL_WIDTH if width % CELL_WIDTH == 0 else width
+    cell_height = CELL_HEIGHT if height % CELL_HEIGHT == 0 else height
+
+    for _ in range(edge_radius * 2 + 1):
+        updates: list[tuple[int, tuple[float, float, float]]] = []
+        for index, is_pending in enumerate(pending):
+            if not is_pending:
+                continue
+            x = index % width
+            y = index // width
+            cell_left = x // cell_width * cell_width
+            cell_top = y // cell_height * cell_height
+            references = []
+            for neighbor_y in range(
+                max(cell_top, y - 1),
+                min(cell_top + cell_height, y + 2),
+            ):
+                for neighbor_x in range(
+                    max(cell_left, x - 1),
+                    min(cell_left + cell_width, x + 2),
+                ):
+                    neighbor = neighbor_y * width + neighbor_x
+                    if neighbor != index and filled[neighbor]:
+                        references.append(colors_linear[neighbor])
+            if not references:
+                continue
+
+            reference = tuple(
+                sum(color[channel] for color in references) / len(references)
+                for channel in range(3)
+            )
+            observed = colors_linear[index]
+            cleaned = tuple(
+                channel + (reference_channel - channel) * strength
+                for channel, reference_channel in zip(observed, reference)
+            )
+            updates.append((index, cleaned))
+
+        if not updates:
+            break
+        for index, cleaned in updates:
+            colors_linear[index] = cleaned
+            filled[index] = True
+            pending[index] = False
+            output[index] = (
+                *(round(linear_to_srgb(min(1, max(0, channel))) * 255) for channel in cleaned),
+                pixels[index][3],
+            )
+            suppressed[index] = output[index] != pixels[index]
+
+    for index, is_pending in enumerate(pending):
+        if not is_pending:
+            continue
+        observed = colors_linear[index]
+        luminance = sum(observed) / 3
+        cleaned = tuple(channel + (luminance - channel) * strength for channel in observed)
+        output[index] = (
+            *(round(linear_to_srgb(min(1, max(0, channel))) * 255) for channel in cleaned),
+            pixels[index][3],
+        )
+        suppressed[index] = output[index] != pixels[index]
+
+    return output, suppressed
 
 
 def decontaminate_image(
     image: Image.Image,
     *,
     chroma_key: tuple[int, int, int],
-    strength: float = 1.0,
+    strength: float = 1,
     edge_radius: int = 5,
     spill_tolerance: float = 0.15,
     minimum_saturation: float = 0.1,
@@ -68,99 +207,47 @@ def decontaminate_image(
     if minimum_saturation < 0:
         raise ValueError("minimum_saturation must not be negative")
 
-    rgba = np.asarray(image.convert("RGBA")).copy()
-    height, width = rgba.shape[:2]
-    alpha = rgba[:, :, 3]
-    boundary = atlas_edge_band_mask(alpha, edge_radius)
-
-    rgb_norm = rgba[:, :, :3].astype(np.float32) / 255.0
-    colors_linear = srgb_to_linear_arr(rgb_norm)
-    key_linear = srgb_to_linear_arr(np.array(chroma_key, dtype=np.float32) / 255.0)
-
-    c_max = colors_linear.max(axis=2)
-    c_min = colors_linear.min(axis=2)
-    sat = np.where(c_max > 0.0, (c_max - c_min) / np.maximum(c_max, 1e-12), 0.0)
-
-    c_mean = colors_linear.mean(axis=2, keepdims=True)
-    c_chroma = colors_linear - c_mean
-    k_chroma = key_linear - key_linear.mean()
-    denom = np.sqrt(np.sum(c_chroma ** 2, axis=2) * np.sum(k_chroma ** 2))
-    sim = np.where(denom > 1e-12, np.sum(c_chroma * k_chroma, axis=2) / np.maximum(denom, 1e-12), -1.0)
-
-    similarity_threshold = 1.0 - min(spill_tolerance, 1.0)
-    pending = (alpha > 0) & boundary & (
-        (alpha < 250) | ((sat >= minimum_saturation) & (sim >= similarity_threshold))
+    rgba = image.convert("RGBA")
+    width, _ = rgba.size
+    source = list(_flat_data(rgba))
+    boundary = atlas_edge_band(rgba.getchannel("A"), edge_radius)
+    key_linear = tuple(srgb_to_linear(channel / 255) for channel in chroma_key)
+    output_pixels, suppressed = suppress_boundary_spill(
+        source,
+        size=rgba.size,
+        boundary=boundary,
+        key_linear=key_linear,
+        strength=strength,
+        edge_radius=edge_radius,
+        spill_tolerance=spill_tolerance,
+        minimum_saturation=minimum_saturation,
     )
-    filled = (alpha > 0) & (~pending)
-    out_linear = colors_linear.copy()
-
-    # Cell-isolated 3x3 neighbor averaging prevents bleed across cell boundaries
-    cell_w = CELL_WIDTH if width % CELL_WIDTH == 0 else width
-    cell_h = CELL_HEIGHT if height % CELL_HEIGHT == 0 else height
-    kernel = np.ones((3, 3), dtype=np.float32)
-    kernel[1, 1] = 0.0
-
-    for _ in range(edge_radius * 2 + 1):
-        if not np.any(pending):
-            break
-        updated_any = False
-        new_filled = filled.copy()
-        new_pending = pending.copy()
-        for top in range(0, height, cell_h):
-            for left in range(0, width, cell_w):
-                p_slice = pending[top : top + cell_h, left : left + cell_w]
-                if not np.any(p_slice):
-                    continue
-                f_slice = filled[top : top + cell_h, left : left + cell_w]
-                if not np.any(f_slice):
-                    continue
-                c_slice = out_linear[top : top + cell_h, left : left + cell_w]
-                weight = ndimage.convolve(f_slice.astype(np.float32), kernel, mode="constant", cval=0.0)
-                can_update = p_slice & (weight > 0)
-                if not np.any(can_update):
-                    continue
-                updated_any = True
-                ref = np.zeros_like(c_slice)
-                for ch in range(3):
-                    weighted_sum = ndimage.convolve(
-                        c_slice[:, :, ch] * f_slice, kernel, mode="constant", cval=0.0
-                    )
-                    ref[:, :, ch] = np.where(can_update, weighted_sum / np.maximum(weight, 1e-6), c_slice[:, :, ch])
-                c_slice[can_update] = c_slice[can_update] + (ref[can_update] - c_slice[can_update]) * strength
-                new_filled[top : top + cell_h, left : left + cell_w][can_update] = True
-                new_pending[top : top + cell_h, left : left + cell_w][can_update] = False
-        filled = new_filled
-        pending = new_pending
-        if not updated_any:
-            break
-
-    if np.any(pending):
-        lum = out_linear[pending].mean(axis=1, keepdims=True)
-        out_linear[pending] = out_linear[pending] + (lum - out_linear[pending]) * strength
-
-    out_srgb = np.rint(linear_to_srgb_arr(out_linear) * 255.0).astype(np.uint8)
-    out_rgba = rgba.copy()
-    out_rgba[:, :, :3] = out_srgb
-    out_rgba[alpha == 0] = 0
-
-    changed_mask = np.any(out_rgba != rgba, axis=2)
-    decontaminated_pixels = int(np.sum(changed_mask & (alpha < 255)))
-    spill_suppressed_pixels = int(np.sum(changed_mask))
+    output_pixels = [
+        (0, 0, 0, 0) if pixel[3] == 0 else output_pixel
+        for pixel, output_pixel in zip(source, output_pixels)
+    ]
+    decontaminated_pixels = sum(
+        is_suppressed and pixel[3] < 255 for pixel, is_suppressed in zip(source, suppressed)
+    )
+    spill_suppressed_pixels = sum(suppressed)
 
     changed_by_cell: dict[str, int] = {}
-    ys, xs = np.where(changed_mask)
-    for r_idx, c_idx in zip(ys // CELL_HEIGHT, xs // CELL_WIDTH):
-        key_name = f"r{int(r_idx)}c{int(c_idx)}"
-        changed_by_cell[key_name] = changed_by_cell.get(key_name, 0) + 1
+    for index, (source_pixel, output_pixel) in enumerate(zip(source, output_pixels)):
+        if output_pixel != source_pixel:
+            x = index % width
+            y = index // width
+            cell = f"r{y // CELL_HEIGHT}c{x // CELL_WIDTH}"
+            changed_by_cell[cell] = changed_by_cell.get(cell, 0) + 1
 
-    output = Image.fromarray(out_rgba, mode="RGBA")
+    output = Image.new("RGBA", rgba.size)
+    output.putdata(output_pixels)
     return output, {
         "algorithm": ALGORITHM,
         "strength": strength,
         "edge_radius": edge_radius,
         "spill_tolerance": spill_tolerance,
         "minimum_saturation": minimum_saturation,
-        "changed_pixels": spill_suppressed_pixels,
+        "changed_pixels": sum(changed_by_cell.values()),
         "decontaminated_pixels": decontaminated_pixels,
         "spill_suppressed_pixels": spill_suppressed_pixels,
         "rejected_pixels": 0,
@@ -175,8 +262,10 @@ def save_image(image: Image.Image, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.suffix.lower() == ".webp":
         image.save(path, format="WEBP", lossless=True, quality=100, method=6, exact=True)
+    elif path.suffix.lower() == ".png":
+        image.save(path, format="PNG", optimize=True, compress_level=9)
     else:
-        image.save(path, optimize=True, compress_level=9)
+        image.save(path)
 
 
 def main() -> None:

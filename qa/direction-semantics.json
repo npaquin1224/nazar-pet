@@ -1,5 +1,5 @@
 {
-  "look_rgba_sha256": "70c466cfa0cc793dc4ab02506da11ce3b95c77785cfe23c004d2255c811a7163",
+  "look_rgba_sha256": "efa160bd5cbf3c20f28d987adff5bb0faff7ba1b92e610905bd99c3e9a050be6",
   "directions": [
     {
       "label": "000",
@@ -115,7 +115,7 @@
     }
   ],
   "continuity_review": [
-    "157.5 to 180 and 337.5 to 000 traverse the strip boundary with a consistent silhouette and baseline; pupils progress into their vertical cardinals.",
-    "247.5 to 270 shows an uninterrupted lift at the left rim. The down component at 247.5 is subtle."
+    "Examined all sixteen rendered gaze poses at native size. The pupil rolls through the same socket as the body stays planted.",
+    "At both row seams the pupil moves into the vertical cardinal without a visible silhouette jump. The 247.5-degree down-left pose retains a shallow but readable downward component."
   ]
 }
