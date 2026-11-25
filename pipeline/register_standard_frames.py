@@ -173,9 +173,10 @@ def register_poses(
             dst_bottom = TARGET_BASELINE - lift_px
         else:
             delta_px = (ref_b - ground_ref) * scale
-            # Clamp minor ground foot-contact jitter to <= 0.5px while preserving deliberate lean
-            # Review pose index 3 stays grounded even as its silhouette compresses.
-            if abs(delta_px) <= 1.6 or (state == "review" and idx == 3):
+            if state == "review" and idx == 3:
+                # Leave a one-pixel blink dip so the crown cannot peak above its neighbors.
+                delta_px = 1.0
+            elif abs(delta_px) <= 1.6:
                 delta_px = 0.0
             dst_bottom = min(float(CELL_HEIGHT - 4), TARGET_BASELINE + delta_px)
 
