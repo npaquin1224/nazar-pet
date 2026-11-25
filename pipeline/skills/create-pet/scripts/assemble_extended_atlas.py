@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""Assemble a standard ChatGPT pet atlas plus 16 look-direction frames."""
+"""Assemble a standard ChatGPT pet atlas plus 16 look-direction frames (vectorized + scale-harmonized)."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import math
 import re
 import sys
 from pathlib import Path
 
+import numpy as np
 from PIL import Image
+from scipy import ndimage
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from extract_strip_frames import component_frame_groups, component_group_image
+from extract_strip_frames import component_frame_groups, component_group_image, remove_chroma_background
 
 COLUMNS = 8
 STANDARD_ROWS = 9
@@ -55,17 +56,15 @@ class CellGeometry:
 
 
 def edge_alpha_count(image: Image.Image, margin: int) -> int:
-    alpha = image.getchannel("A")
-    width, height = alpha.size
-    total = 0
-    for box in (
-        (0, 0, width, margin),
-        (0, height - margin, width, height),
-        (0, 0, margin, height),
-        (width - margin, 0, width, height),
-    ):
-        total += sum(alpha.crop(box).histogram()[1:])
-    return total
+    if margin <= 0:
+        return 0
+    visible = np.asarray(image.getchannel("A")) > 0
+    return sum(int(strip.sum()) for strip in (
+        visible[:margin, :],
+        visible[-margin:, :],
+        visible[:, :margin],
+        visible[:, -margin:],
+    ))
 
 
 def parse_hex_color(value: str) -> tuple[int, int, int]:
@@ -74,28 +73,18 @@ def parse_hex_color(value: str) -> tuple[int, int, int]:
     return tuple(int(value[index : index + 2], 16) for index in (1, 3, 5))
 
 
-def color_distance(
-    red: int,
-    green: int,
-    blue: int,
-    key: tuple[int, int, int],
-) -> float:
-    return math.sqrt((red - key[0]) ** 2 + (green - key[1]) ** 2 + (blue - key[2]) ** 2)
-
-
-def remove_chroma_background(
-    image: Image.Image,
-    chroma_key: tuple[int, int, int],
-    threshold: float,
-) -> Image.Image:
-    rgba = image.convert("RGBA")
-    pixels = rgba.load()
-    for y in range(rgba.height):
-        for x in range(rgba.width):
-            red, green, blue, alpha = pixels[x, y]
-            if color_distance(red, green, blue, chroma_key) <= threshold:
-                pixels[x, y] = (0, 0, 0, 0)
-    return rgba
+def remove_small_detached_components(image: Image.Image) -> Image.Image:
+    arr = np.asarray(image.convert("RGBA")).copy()
+    mask = arr[:, :, 3] > 16
+    labeled, count = ndimage.label(mask)
+    if count <= 1:
+        return Image.fromarray(arr, mode="RGBA")
+    areas = ndimage.sum(mask, labeled, index=range(1, count + 1))
+    largest = max(areas)
+    for idx, area in enumerate(areas, start=1):
+        if area < largest and area < MIN_DETACHED_COMPONENT_PIXELS:
+            arr[labeled == idx] = 0
+    return Image.fromarray(arr, mode="RGBA")
 
 
 def fit_to_cell(image: Image.Image) -> Image.Image:
@@ -119,81 +108,20 @@ def fit_to_cell(image: Image.Image) -> Image.Image:
     return remove_small_detached_components(target)
 
 
-def remove_small_detached_components(image: Image.Image) -> Image.Image:
-    rgba = image.convert("RGBA")
-    alpha = rgba.getchannel("A")
-    width, height = rgba.size
-    visited: set[tuple[int, int]] = set()
-    components: list[list[tuple[int, int]]] = []
-
-    for y in range(height):
-        for x in range(width):
-            if (x, y) in visited or alpha.getpixel((x, y)) <= 16:
-                continue
-
-            component: list[tuple[int, int]] = []
-            stack = [(x, y)]
-            visited.add((x, y))
-            while stack:
-                current_x, current_y = stack.pop()
-                component.append((current_x, current_y))
-                for next_x, next_y in (
-                    (current_x - 1, current_y),
-                    (current_x + 1, current_y),
-                    (current_x, current_y - 1),
-                    (current_x, current_y + 1),
-                ):
-                    if (
-                        next_x < 0
-                        or next_x >= width
-                        or next_y < 0
-                        or next_y >= height
-                        or (next_x, next_y) in visited
-                        or alpha.getpixel((next_x, next_y)) <= 16
-                    ):
-                        continue
-                    visited.add((next_x, next_y))
-                    stack.append((next_x, next_y))
-            components.append(component)
-
-    if not components:
-        return rgba
-
-    largest = max(len(component) for component in components)
-    pixels = rgba.load()
-    for component in components:
-        if len(component) == largest or len(component) >= MIN_DETACHED_COMPONENT_PIXELS:
-            continue
-        for x, y in component:
-            pixels[x, y] = (0, 0, 0, 0)
-    return rgba
-
-
-def opaque_points(image: Image.Image) -> list[tuple[int, int]]:
-    alpha = image.getchannel("A")
-    width, height = image.size
-    return [(x, y) for y in range(height) for x in range(width) if alpha.getpixel((x, y)) > 16]
-
-
-def lower_band_points(
-    points: list[tuple[int, int]], top: int, bottom: int
-) -> list[tuple[int, int]]:
-    threshold = top + (bottom - top) * 0.72
-    return [(x, y) for x, y in points if y >= threshold] or points
-
-
 def cell_geometry(cell: Image.Image) -> CellGeometry | None:
-    points = opaque_points(cell)
-    if not points:
+    alpha = np.asarray(cell.getchannel("A"))
+    ys, xs = np.where(alpha > 16)
+    if len(ys) == 0:
         return None
-
-    ys = [y for _, y in points]
-    top = min(ys)
-    bottom = max(ys) + 1
-    lower_points = lower_band_points(points, top, bottom)
+    top = int(ys.min())
+    bottom = int(ys.max()) + 1
+    threshold = top + (bottom - top) * 0.72
+    lower_xs = xs[ys >= threshold]
+    if len(lower_xs) == 0:
+        lower_xs = xs
     return CellGeometry(
         height=bottom - top,
-        lower_center_x=sum(x for x, _ in lower_points) / len(lower_points),
+        lower_center_x=float(lower_xs.mean()),
         bottom=bottom,
     )
 
@@ -242,7 +170,6 @@ def normalize_cells_to_reference(
 
 
 def normalization_scale(cells: list[Image.Image], target: CellGeometry) -> float:
-
     geometries = [cell_geometry(cell) for cell in cells]
     if any(geometry is None for geometry in geometries):
         raise SystemExit("look direction cells must contain visible pixels")
@@ -273,14 +200,9 @@ def normalization_scale(cells: list[Image.Image], target: CellGeometry) -> float
 
 
 def clear_transparent_rgb(image: Image.Image) -> Image.Image:
-    rgba = image.convert("RGBA")
-    data = bytearray(rgba.tobytes())
-    for index in range(0, len(data), 4):
-        if data[index + 3] == 0:
-            data[index] = 0
-            data[index + 1] = 0
-            data[index + 2] = 0
-    return Image.frombytes("RGBA", rgba.size, bytes(data))
+    arr = np.asarray(image.convert("RGBA")).copy()
+    arr[arr[:, :, 3] == 0] = 0
+    return Image.fromarray(arr, mode="RGBA")
 
 
 def load_base_rows(base_atlas_path: Path) -> Image.Image:
@@ -518,7 +440,7 @@ def save_registered_row(cells: list[Image.Image], path: Path) -> None:
     for column, cell in enumerate(cells):
         row.alpha_composite(cell, (column * CELL_WIDTH, 0))
     path.parent.mkdir(parents=True, exist_ok=True)
-    clear_transparent_rgb(row).save(path)
+    clear_transparent_rgb(row).save(path, optimize=True, compress_level=9)
     print(f"wrote {path}")
 
 
@@ -567,6 +489,10 @@ def main() -> None:
         chroma_key,
         args.chroma_threshold,
     )
+    target = cell_geometry(neutral)
+    if target is None:
+        raise SystemExit("neutral reference cell must contain visible pixels")
+
     if args.registered_row_9:
         if not args.look_row_10 or not args.row_9_registration:
             raise SystemExit("--registered-row-9 requires --look-row-10 and --row-9-registration")
@@ -576,10 +502,13 @@ def main() -> None:
             chroma_key,
             args.chroma_threshold,
         )
+        # Harmonize row 10 scale to match neutral/row-9 silhouette height without clipping
+        row_9_scale = load_registration_scale(Path(args.row_9_registration).expanduser().resolve())
+        row_10_scale = min(row_9_scale, normalization_scale(row_10_cells, target))
         row_10_cells = normalize_cells_to_reference(
             row_10_cells,
             neutral,
-            load_registration_scale(Path(args.row_9_registration).expanduser().resolve()),
+            row_10_scale,
         )
         validate_normalized_look_cells(
             row_10_cells,
@@ -590,9 +519,6 @@ def main() -> None:
         cells = [*row_9_cells, *row_10_cells]
     else:
         cells = load_look_cells(args, chroma_key)
-        target = cell_geometry(neutral)
-        if target is None:
-            raise SystemExit("neutral reference cell must contain visible pixels")
         scale = normalization_scale(cells, target)
         cells = normalize_cells_to_reference(cells, neutral, scale)
         validate_normalized_look_cells(
@@ -625,7 +551,7 @@ def main() -> None:
 
     output = Path(args.output).expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    atlas.save(output)
+    atlas.save(output, optimize=True, compress_level=9)
     print(f"wrote {output}")
 
     if args.webp_output:

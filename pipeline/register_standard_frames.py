@@ -1,8 +1,7 @@
-"""Register extracted state frames to the shared Nazar baseline."""
+"""Register extracted state frames to the shared Nazar baseline with zero ground jitter."""
 
 import argparse
 from pathlib import Path
-from statistics import median
 
 from PIL import Image
 
@@ -17,9 +16,9 @@ def register_row(paths, *, jumping):
         raise ValueError("All frames in the row must contain visible artwork.")
 
     scale = 0.95
-    target_baseline = 196
+    target_baseline = 195
     bottoms = [box[3] for box in bounds]
-    baseline = max(bottoms) if jumping else round(median(bottoms))
+    jump_baseline = max(bottoms)
     for path, pose, (left, top, right, bottom) in zip(paths, poses, bounds, strict=True):
         subject = pose.crop((left, top, right, bottom))
         subject = subject.resize(
@@ -27,7 +26,12 @@ def register_row(paths, *, jumping):
             Image.Resampling.LANCZOS,
         )
         x = round(96 + (left - 96) * scale)
-        y = round(target_baseline + (top - baseline) * scale)
+        if jumping:
+            # Preserve intentional vertical airborne arc while landing cleanly on target_baseline
+            y = round(target_baseline + (top - jump_baseline) * scale)
+        else:
+            # Lock grounded states cleanly to target_baseline to eliminate 1-3px foot bounce
+            y = target_baseline - subject.height
         if not (3 <= y and y + subject.height <= 205):
             raise ValueError(f"Baseline registration would clip {path}")
         canvas = Image.new("RGBA", pose.size)
@@ -46,7 +50,7 @@ def main():
         registered.extend(register_row(paths, jumping=row.name == "jumping"))
 
     for path, canvas in registered:
-        canvas.save(path)
+        canvas.save(path, optimize=True, compress_level=9)
     print(f"Registered {len(registered)} frames.")
 
 
