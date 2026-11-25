@@ -119,11 +119,11 @@ if ffmpeg:
 
 idle, jump = states['idle'], states['jumping']
 jump_loop = [staged_pose(p, 'Jump', dark_bg, '#DCE4F7') for p in [idle[0], *jump, idle[-1]]]
-jump_times = [300, 120, 130, 140, 130, 120, 350]
+jump_times = [300, *ROW_DURATIONS['jumping'], 350]
 save_optimized_gif(jump_loop, jump_times, output / 'Nazar-idle-jump-idle.gif')
 
 look = [staged_pose(get_cell(row, column), 'Look', dark_bg, '#DCE4F7') for row in (9, 10) for column in range(8)]
-save_optimized_gif(look, [115] * 16, output / 'Nazar-look-loop.gif')
+save_optimized_gif(look, [110] * 16, output / 'Nazar-look-loop.gif')
 
 samples = [(idle[0], 'Idle'), (states['waving'][2], 'Wave'), (jump[2], 'Jump apex'), (states['review'][2], 'Review')]
 still_sheet = Image.new('RGB', (192 * len(samples), 232), dark_bg[:3])

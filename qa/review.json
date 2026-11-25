@@ -478,15 +478,15 @@
           "file": "frames/jumping/01.png",
           "width": 192,
           "height": 208,
-          "nontransparent_pixels": 19234,
+          "nontransparent_pixels": 19233,
           "bbox": [
             12,
-            18,
+            12,
             181,
-            180
+            174
           ],
           "edge_pixels": 0,
-          "chroma_adjacent_pixels": 555
+          "chroma_adjacent_pixels": 554
         },
         {
           "index": 2,
@@ -508,15 +508,15 @@
           "file": "frames/jumping/03.png",
           "width": 192,
           "height": 208,
-          "nontransparent_pixels": 18971,
+          "nontransparent_pixels": 18942,
           "bbox": [
             12,
-            18,
+            12,
             180,
-            180
+            174
           ],
           "edge_pixels": 0,
-          "chroma_adjacent_pixels": 559
+          "chroma_adjacent_pixels": 555
         },
         {
           "index": 4,
@@ -927,15 +927,15 @@
           "file": "frames/review/03.png",
           "width": 192,
           "height": 208,
-          "nontransparent_pixels": 21695,
+          "nontransparent_pixels": 21692,
           "bbox": [
             8,
-            27,
+            25,
             177,
-            196
+            194
           ],
           "edge_pixels": 0,
-          "chroma_adjacent_pixels": 503
+          "chroma_adjacent_pixels": 501
         },
         {
           "index": 4,
