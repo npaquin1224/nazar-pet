@@ -81,5 +81,21 @@
   "gaze": {
     "direction": "337.5",
     "changed_pixels": 7262
+  },
+  "waiting": {
+    "iris_lift_pixels": [
+      0,
+      8,
+      17,
+      17,
+      8,
+      0
+    ],
+    "changed_by_frame": {
+      "1": 6091,
+      "2": 6176,
+      "3": 6180,
+      "4": 6079
+    }
   }
 }

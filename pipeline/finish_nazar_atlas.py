@@ -82,6 +82,38 @@ def adjust_wrap_eye(cell):
     return changed
 
 
+def adjust_waiting_eye(cell, lift):
+    """Lift the concentric eye within the existing waiting pose's aperture."""
+    guides = (
+        (52, 92, 124), (58, 84, 133), (64, 77, 141), (71, 72, 147),
+        (79, 68, 151), (89, 66, 153), (99, 65, 153), (110, 67, 152),
+        (120, 72, 146), (130, 78, 136), (137, 88, 127), (142, 99, 114),
+    )
+    columns, tops, bottoms = np.array(guides).T
+    y = np.arange(CELL_HEIGHT)
+    changed = 0
+    for x in range(columns[0] + 1, columns[-1]):
+        top = np.interp(x, columns, tops)
+        bottom = np.interp(x, columns, bottoms)
+        taper = min((x - columns[0]) / 15, (columns[-1] - x) / 15, 1)
+        shift = lift * taper * taper * (3 - 2 * taper)
+        upper = top + (bottom - top) * 0.30
+        lower = top + (bottom - top) * 0.91
+        inside = (y > top) & (y < bottom)
+        if not np.all(cell[inside, x, 3] == 255):
+            raise ValueError("Waiting aperture no longer fits the registered eye")
+        sample_y = np.interp(
+            y[inside],
+            [top, upper - shift, lower - shift, bottom],
+            [top, upper, lower, bottom],
+        )
+        original = cell[inside, x, :3].copy()
+        for channel in range(3):
+            cell[inside, x, channel] = np.rint(np.interp(sample_y, y, cell[:, x, channel]))
+        changed += int(np.any(original != cell[inside, x, :3], axis=1).sum())
+    return changed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
@@ -103,6 +135,12 @@ def main():
 
     wrap_cell = atlas[10 * CELL_HEIGHT:11 * CELL_HEIGHT, 7 * CELL_WIDTH:8 * CELL_WIDTH]
     gaze_pixels = adjust_wrap_eye(wrap_cell)
+    waiting_lifts = (0, 8, 17, 17, 8, 0)
+    waiting_pixels = {}
+    for column, lift in enumerate(waiting_lifts):
+        if lift:
+            cell = atlas[6 * CELL_HEIGHT:7 * CELL_HEIGHT, column * CELL_WIDTH:(column + 1) * CELL_WIDTH]
+            waiting_pixels[str(column)] = adjust_waiting_eye(cell, lift)
     Image.fromarray(atlas).save(args.output, optimize=True)
     report = {
         "ok": True,
@@ -111,6 +149,7 @@ def main():
         "changed_pixels": sum(changed_by_cell.values()),
         "changed_by_cell": changed_by_cell,
         "gaze": {"direction": "337.5", "changed_pixels": gaze_pixels},
+        "waiting": {"iris_lift_pixels": waiting_lifts, "changed_by_frame": waiting_pixels},
     }
     args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
