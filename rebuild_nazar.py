@@ -71,8 +71,11 @@ def main():
     run("assemble_extended_atlas.py", "--base-atlas", standard, "--registered-row-9", row9,
         "--row-9-registration", registration, "--look-row-10", decoded / "look-row-10.png",
         "--output", raw, "--manifest-output", out / "atlas-registration.json", "--chroma-key", "#FF00FF")
-    run("despill_chroma_edges.py", raw, "--output", atlas, "--json-out", out / "despill.json",
+    despilled = out / "atlas-after-despill.png"
+    run("despill_chroma_edges.py", raw, "--output", despilled, "--json-out", out / "despill.json",
         "--chroma-key", "#FF00FF", "--edge-radius", "3", "--spill-tolerance", "0.20")
+    run(pipeline / "finish_nazar_atlas.py", despilled, "--output", atlas,
+        "--report", out / "rim-gaze-finishing.json")
     if args.optimize_png:
         optimize_png(atlas)
     run("validate_atlas.py", atlas, "--require-v2", "--chroma-key", "#FF00FF",

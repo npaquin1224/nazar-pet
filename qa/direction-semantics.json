@@ -1,5 +1,5 @@
 {
-  "look_rgba_sha256": "1df313e81319c525474cf0eb32bd0a0953e7dd19e805db1484d1c3c3e0aee5d4",
+  "look_rgba_sha256": "49c78b6abacf678ba02de6d74465bbe1822e83beb4439eca95caeb80b27d8b5b",
   "directions": [
     {
       "label": "000",
@@ -40,8 +40,8 @@
       "label": "112.5",
       "expected": "down-right",
       "observed": "down-right",
-      "verdict": "pass",
-      "evidence": "Pupil near the right side and below the mid-height marked by the prior cardinal."
+      "verdict": "warning",
+      "evidence": "The pupil advances downward from the 90-degree cardinal, but two blind readers saw its vertical axis as centered and the third found the downward lean subtle."
     },
     {
       "label": "135",
@@ -54,8 +54,8 @@
       "label": "157.5",
       "expected": "down-right",
       "observed": "down-right",
-      "verdict": "pass",
-      "evidence": "Pupil approaches the bottom of the opening and remains slightly right of the gap between the feet."
+      "verdict": "warning",
+      "evidence": "The pupil approaches the bottom along the clockwise arc. All blind readers saw the rightward lean as centered in isolation."
     },
     {
       "label": "180",
@@ -96,8 +96,8 @@
       "label": "292.5",
       "expected": "up-left",
       "observed": "up-left",
-      "verdict": "pass",
-      "evidence": "Pupil stays left of the body centerline and lifts above the 270-degree pupil."
+      "verdict": "warning",
+      "evidence": "The pupil moves up from the left cardinal toward 315 degrees. All blind readers saw a slight upward lean but marked the vertical axis ambiguous in isolation."
     },
     {
       "label": "315",
@@ -111,11 +111,11 @@
       "expected": "up-left",
       "observed": "up-left",
       "verdict": "pass",
-      "evidence": "Pupil remains left of the sole gap at the top of the socket and progresses smoothly to the centered up pose."
+      "evidence": "The iris and pupil shift toward 0 degrees within the existing aperture. All three blind readers called the pose up-left."
     }
   ],
   "continuity_review": [
-    "Reviewed all sixteen registered gaze poses and the two row seams. The pupil continues the clockwise arc through 157.5 to 180 and 337.5 to 000.",
-    "The continuity report flags alpha-outline differences at the two row boundaries. Bounding-box center shifts are 0.71 px and 0.00 px respectively, with under 1% visible area change. The shell edge and feet stay visually registered at pet size."
+    "Using the same local dark-pupil landmark method before and after, the 315 → 337.5 → 0 steps changed from 8.14 / 27.66 px to 16.35 / 18.93 px.",
+    "The finishing pass preserves the full atlas alpha channel. The existing silhouette-only warnings at 157.5 to 180 and 337.5 to 0 remain independent of the pupil travel measurement."
   ]
 }
